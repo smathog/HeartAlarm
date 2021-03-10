@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusableInTouchMode="true"
+    tools:context=".AlarmSettings">
+
+    <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/alarmSettingsMargin"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/alarmSettingsHighHeartRateAlarmLabel"
+                android:textColor="@color/isolatedTextColor"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <RadioGroup
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/enable_hhr"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/colorPrimary"
+                    android:onClick="onClickHHR"
+                    android:text="@string/alarmSettingsEnabledLabel"
+                    android:textColor="@color/isolatedTextColor"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <RadioButton
+                    android:id="@+id/disable_hhr"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/colorPrimary"
+                    android:onClick="onClickHHR"
+                    android:text="@string/alarmSettingsDisabledLabel"
+                    android:textColor="@color/isolatedTextColor"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+            </RadioGroup>
+        </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/alarmSettingsSetHighHeartRateLimitLabel"
+                android:textColor="@color/isolatedTextColor"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/hhr_alarm_setting"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:ems="10"
+                android:hint="@string/alarmSettingsDefaultHighHeartRate"
+                android:imeOptions="actionDone"
+                android:inputType="numberSigned"
+                android:singleLine="true" />
+        </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/alarmSettingsMargin"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/alarmSettingsLowHeartRateAlarm"
+                android:textColor="@color/isolatedTextColor"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <RadioGroup
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/enable_lhr"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/colorPrimary"
+                    android:onClick="onClickLHR"
+                    android:text="@string/alarmSettingsEnabledLabel"
+                    android:textColor="@color/isolatedTextColor"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <RadioButton
+                    android:id="@+id/disable_lhr"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/colorPrimary"
+                    android:onClick="onClickLHR"
+                    android:text="@string/alarmSettingsDisabledLabel"
+                    android:textColor="@color/isolatedTextColor"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+            </RadioGroup>
+        </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/alarmSettingsSetLowHeartRateLimitLabel"
+                android:textColor="@color/isolatedTextColor"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/lhr_alarm_setting"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:ems="10"
+                android:hint="@string/alarmSettingsDefaultLowHeartRate"
+                android:imeOptions="actionDone"
+                android:inputType="numberSigned"
+                android:singleLine="true" />
+        </LinearLayout>
+
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/alarmSettingsMargin"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/alarm_duration_setting_label"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/alarmSettingsAlarmDurationSettingLabel"
+                android:textColor="@color/isolatedTextColor"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <RadioGroup
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/duration_halt_immediate_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/colorPrimary"
+                    android:onClick="onClickAlarmDuration"
+                    android:text="@string/alarmSettingsStopImmediatelyLabel"
+                    android:textColor="@color/isolatedTextColor"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <RadioButton
+                    android:id="@+id/fixed_duration_halt_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/colorPrimary"
+                    android:onClick="onClickAlarmDuration"
+                    android:text="@string/alarmSettingsStopAfter30Label"
+                    android:textColor="@color/isolatedTextColor"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <RadioButton
+                    android:id="@+id/indefinite_duration_halt_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/colorPrimary"
+                    android:onClick="onClickAlarmDuration"
+                    android:text="@string/alarmSettingsPlayAlarmIndefinitelyLabel"
+                    android:textColor="@color/isolatedTextColor"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+            </RadioGroup>
+        </LinearLayout>
+
+    <Button
+        android:id="@+id/buttonAlarmSettingsActivateAlarm"
+        style="@style/Widget.AppCompat.Button"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="64dp"
+        android:layout_marginTop="@dimen/alarmSettingsMargin"
+        android:layout_marginEnd="64dp"
+        android:background="@color/colorPrimary"
+        android:onClick="onClickActivateAlarm"
+        android:padding="8dp"
+        android:text="@string/activateHeartAlarmLabel"
+        android:textColor="@color/colorAccent" />
+
+    <Button
+        android:id="@+id/buttonAlarmSettingsDeactivateAlarm"
+        style="@style/Widget.AppCompat.Button"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="64dp"
+        android:layout_marginTop="@dimen/alarmSettingsMargin"
+        android:layout_marginEnd="64dp"
+        android:background="@color/colorPrimary"
+        android:onClick="onClickDeactivateAlarm"
+        android:padding="8dp"
+        android:text="@string/deactivateHeartAlarmLAbel"
+        android:textColor="@color/colorAccent" />
+
+</LinearLayout>

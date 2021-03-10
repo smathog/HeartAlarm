@@ -1,0 +1,29 @@
+<resources>
+    <string name="app_name">HeartAlarm</string>
+    <string name="buttonAlarmSettingsLabel">Alarm Settings</string>
+    <string name="deactivateHeartAlarmLAbel">Deactivate HeartAlarm</string>
+    <string name="activateHeartAlarmLabel">Activate HeartAlarm</string>
+    <string name="buttonSetIDLabel">Set Polar Device ID</string>
+    <string name="alarmSettingsHighHeartRateAlarmLabel">High Heart Rate Alarm</string>
+    <string name="alarmSettingsEnabledLabel">Enabled</string>
+    <string name="alarmSettingsDisabledLabel">Disabled</string>
+    <string name="alarmSettingsSetHighHeartRateLimitLabel">Set High Heart Rate Limit:</string>
+    <string name="alarmSettingsDefaultHighHeartRate">120</string>
+    <string name="alarmSettingsLowHeartRateAlarm">Low Heart Rate Alarm</string>
+    <string name="alarmSettingsSetLowHeartRateLimitLabel">Set Low Heart Rate Limit:</string>
+    <string name="alarmSettingsDefaultLowHeartRate">45</string>
+    <string name="alarmSettingsAlarmDurationSettingLabel">Alarm Duration Setting:</string>
+    <string name="alarmSettingsStopImmediatelyLabel">Stop Immediately</string>
+    <string name="alarmSettingsStopAfter30Label">Stop After 30 Seconds</string>
+    <string name="alarmSettingsPlayAlarmIndefinitelyLabel">Play Alarm Indefinitely</string>
+    <string name="mainActivityHRBPMLabel">HR (BPM):</string>
+    <string name="mainActivityDefaultSensor">No Sensor</string>
+    <string name="mainActivityAlarmStatusLabel">Alarm:</string>
+    <string name="activitySetIDSetIDLAbel">Set ID:</string>
+    <string name="activitySetIDIDText">None</string>
+    <string name="activitySetIDNewIDLabel">Enter New ID:</string>
+    <string name="activitySetIDEntryHint">45D1A78C</string>
+    <string name="activitySetIDConnectButtonLabel">Connect</string>
+    <string name="mainActivityStopMonitorLabel">Stop Monitor</string>
+    <string name="mainActivityStartMonitorLabel">Start Monitor</string>
+</resources>

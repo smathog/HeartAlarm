@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".HeartAlarm">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight=".45"
+                android:text="@string/mainActivityHRBPMLabel"
+                android:textAlignment="viewEnd"
+                android:textColor="#000000"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight=".85" />
+
+            <TextView
+                android:id="@+id/mainHRValue"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight=".45"
+                android:text="@string/mainActivityDefaultSensor"
+                android:textAlignment="viewStart"
+                android:textColor="#000000"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight=".45"
+                android:text="@string/mainActivityAlarmStatusLabel"
+                android:textAlignment="viewEnd"
+                android:textColor="#000000"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight=".85" />
+
+            <TextView
+                android:id="@+id/mainAlarmStatus"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight=".45"
+                android:text="@string/mainActivityDefaultSensor"
+                android:textAlignment="viewStart"
+                android:textColor="#000000"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/buttonSetID"
+            style="@style/Widget.AppCompat.Button"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="64dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="64dp"
+            android:background="@color/colorPrimary"
+            android:onClick="onClickSetID"
+            android:padding="8dp"
+            android:text="@string/buttonSetIDLabel"
+            android:textColor="@color/colorAccent" />
+
+        <Button
+            android:id="@+id/buttonActivateMonitor"
+            style="@style/Widget.AppCompat.Button"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="64dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="64dp"
+            android:background="@color/colorPrimary"
+            android:onClick="onClickStartMonitor"
+            android:padding="8dp"
+            android:text="@string/mainActivityStartMonitorLabel"
+            android:textColor="@color/colorAccent" />
+
+        <Button
+            android:id="@+id/buttonDeactiveMonitor"
+            style="@style/Widget.AppCompat.Button"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="64dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="64dp"
+            android:background="@color/colorPrimary"
+            android:onClick="onClickStopMonitor"
+            android:padding="8dp"
+            android:text="@string/mainActivityStopMonitorLabel"
+            android:textColor="@color/colorAccent" />
+
+        <Button
+            android:id="@+id/buttonActivateAlarm"
+            style="@style/Widget.AppCompat.Button"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="64dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="64dp"
+            android:background="@color/colorPrimary"
+            android:onClick="onClickActivateAlarm"
+            android:padding="8dp"
+            android:text="@string/activateHeartAlarmLabel"
+            android:textColor="@color/colorAccent" />
+
+        <Button
+            android:id="@+id/buttonDeactivateAlarm"
+            style="@style/Widget.AppCompat.Button"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="64dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="64dp"
+            android:background="@color/colorPrimary"
+            android:onClick="onClickDeactivateAlarm"
+            android:padding="8dp"
+            android:text="@string/deactivateHeartAlarmLAbel"
+            android:textColor="@color/colorAccent" />
+
+        <Button
+            android:id="@+id/buttonAlarmSettings"
+            style="@style/Widget.AppCompat.Button"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="64dp"
+            android:layout_marginTop="32dp"
+            android:layout_marginEnd="64dp"
+            android:layout_marginBottom="32dp"
+            android:background="@color/colorPrimary"
+            android:onClick="onClickSettings"
+            android:padding="8dp"
+            android:text="@string/buttonAlarmSettingsLabel"
+            android:textColor="@color/colorAccent" />
+    </LinearLayout>
+
+</ScrollView>
