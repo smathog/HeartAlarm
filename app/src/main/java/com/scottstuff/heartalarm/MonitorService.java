@@ -15,6 +15,8 @@ import android.util.Log;
 import android.widget.Toast;
 
 //Imports for Polar API Stuff
+import androidx.core.app.NotificationCompat;
+
 import java.util.UUID;
 
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
@@ -39,8 +41,10 @@ public class MonitorService extends Service {
 
     //Notification ID for updates
     private final static int NOTIFICATION_ID = 1;
-    //Notification builder
+    //Notification builder (API >= 26)
     Notification.Builder builder;
+    //NotificationCompat builder (API < 26)
+    NotificationCompat.Builder compatBuilder;
     //Notification manager
     NotificationManager notificationManager;
 
@@ -111,13 +115,24 @@ public class MonitorService extends Service {
         Intent notificationIntent = new Intent(this, HeartAlarm.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this,
                 0, notificationIntent, 0);
-        builder = new Notification.Builder(this, App.CHANNEL_ID)
-                .setContentTitle("HeartAlarm Monitor (Polar H10)")
-                .setContentText("The monitor is running.")
-                .setSmallIcon(R.drawable.eye)
-                .setContentIntent(pendingIntent)
-                .setOnlyAlertOnce(true);
-        Notification notification = builder.build();
+        Notification notification;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder = new Notification.Builder(this, App.CHANNEL_ID)
+                    .setContentTitle("HeartAlarm Monitor (Polar H10)")
+                    .setContentText("The monitor is running.")
+                    .setSmallIcon(R.drawable.eye)
+                    .setContentIntent(pendingIntent)
+                    .setOnlyAlertOnce(true);
+            notification = builder.build();
+        } else {
+            compatBuilder = new NotificationCompat.Builder(this)
+                    .setContentTitle("HeartAlarm Monitor (Polar H10)")
+                    .setContentText("The monitor is running.")
+                    .setSmallIcon(R.drawable.eye)
+                    .setContentIntent(pendingIntent)
+                    .setOnlyAlertOnce(true);
+            notification = compatBuilder.build();
+        }
         startForeground(NOTIFICATION_ID, notification);
 
         //Polar API Stuff
@@ -275,21 +290,38 @@ public class MonitorService extends Service {
         }
         am.updateAlarmMode(aMode);
         if (alarmActive) {
-            builder.setContentTitle("(Alarm Active)"
+            String updatedContentTitle = "(Alarm Active)"
                     + (lhrOn ? " -L " + lhrSetting : "")
-                    + (hhrOn ? " -H " + hhrSetting : ""));
-            notificationManager.notify(NOTIFICATION_ID, builder.build());
+                    + (hhrOn ? " -H " + hhrSetting : "");
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                builder.setContentTitle(updatedContentTitle);
+                notificationManager.notify(NOTIFICATION_ID, builder.build());
+            } else {
+                compatBuilder.setContentTitle(updatedContentTitle);
+                notificationManager.notify(NOTIFICATION_ID, compatBuilder.build());
+            }
         } else {
-            builder.setContentTitle("HeartAlarm Monitor (Polar H10)");
-            notificationManager.notify(NOTIFICATION_ID, builder.build());
+            final String defaultTitle = "HeartAlarm Monitor (Polar H10)";
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                builder.setContentTitle(defaultTitle);
+                notificationManager.notify(NOTIFICATION_ID, builder.build());
+            } else {
+                compatBuilder.setContentTitle(defaultTitle);
+                notificationManager.notify(NOTIFICATION_ID, compatBuilder.build());
+            }
         }
         return START_REDELIVER_INTENT;
     }
 
     private void updateNotification(String newText) {
         Log.w(TAG, "updateNotification()");
-        builder.setContentText(newText);
-        notificationManager.notify(NOTIFICATION_ID, builder.build());
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            builder.setContentText(newText);
+            notificationManager.notify(NOTIFICATION_ID, builder.build());
+        } else {
+            compatBuilder.setContentText(newText);
+            notificationManager.notify(NOTIFICATION_ID, compatBuilder.build());
+        }
     }
 
     @Override

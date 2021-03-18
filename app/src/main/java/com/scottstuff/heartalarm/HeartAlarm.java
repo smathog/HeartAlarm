@@ -6,6 +6,7 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -40,7 +41,10 @@ public class HeartAlarm extends AppCompatActivity {
             serviceIntent.putExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
             serviceIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
             serviceIntent.putExtra(App.ALARM_ON, false);
-            startForegroundService(serviceIntent);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                startForegroundService(serviceIntent);
+            else
+                startService(serviceIntent);
         } else {
             Toast.makeText(this, "Error: no device ID to connect with!", Toast.LENGTH_LONG).show();
         }

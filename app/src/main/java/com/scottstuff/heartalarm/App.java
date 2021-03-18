@@ -48,16 +48,18 @@ public class App extends Application {
 
     //Notification Channel Creator
     private void createNotificationChannel() {
-        Log.d(TAG, "createNotificationChannel()");
-        NotificationChannel monitorChannel = new NotificationChannel(
-                CHANNEL_ID,
-                "Polar H10 Monitor Channel",
-                NotificationManager.IMPORTANCE_HIGH
-        );
-        monitorChannel.setSound(null, null);
-        monitorChannel.setVibrationPattern(null);
-        NotificationManager manager = getSystemService(NotificationManager.class);
-        manager.createNotificationChannel(monitorChannel);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            Log.d(TAG, "createNotificationChannel()");
+            NotificationChannel monitorChannel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Polar H10 Monitor Channel",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            monitorChannel.setSound(null, null);
+            monitorChannel.setVibrationPattern(null);
+            NotificationManager manager = getSystemService(NotificationManager.class);
+            manager.createNotificationChannel(monitorChannel);
+        }
     }
 
     class State {
