@@ -2,20 +2,25 @@ package com.scottstuff.heartalarm;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
+/**
+ * The primary class for managing the main/entry page's activity
+ */
 public class HeartAlarm extends AppCompatActivity {
     //logcat tag
     private static final String TAG = App.APP_TAG + ".HeartAlarm";
 
+    /**
+     * Standard activity onCreate, but checks to make sure Bluetooth is enabled.
+     * @param savedInstanceState
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate()");
@@ -24,12 +29,32 @@ public class HeartAlarm extends AppCompatActivity {
         Utility.checkBluetooth(this);
     }
 
+
+    /**
+     * Updates the main page when resumed.
+     * Primarily updates to indicate whether the alarm is on.
+     */
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setAlarmText();
+    }
+
+    /**
+     * Launches the activity to set Polar Device ID
+     * @param view
+     */
     public void onClickSetID(View view) {
         Log.d(TAG, "onClickSetID()");
         Intent setIDIntent = new Intent(HeartAlarm.this, SetID.class);
         startActivity(setIDIntent);
     }
 
+    /**
+     * Activates the heart monitor service, which is capable of running in the background as a
+     * foreground service.
+     * @param view
+     */
     public void onClickStartMonitor(View view) {
         Log.d(TAG, "onClickStrtMonitor()");
         if (((App) this.getApplication()).state.isDeviceIDDefined()) {
@@ -45,17 +70,30 @@ public class HeartAlarm extends AppCompatActivity {
                 startForegroundService(serviceIntent);
             else
                 startService(serviceIntent);
+            setAlarmText();
+            ((App) this.getApplication()).state.setServiceRunning(true);
         } else {
             Toast.makeText(this, "Error: no device ID to connect with!", Toast.LENGTH_LONG).show();
         }
     }
 
+    /**
+     * Terminates the heart monitor foreground service.
+     * @param view
+     */
     public void onClickStopMonitor(View view) {
         Log.d(TAG, "onClickStopMonitor()");
         Intent serviceIntent = new Intent(this, MonitorService.class);
         stopService(serviceIntent);
+        setAlarmText();
+        ((App) this.getApplication()).state.setServiceRunning(false);
     }
 
+    /**
+     * Activates the alarm capacity of the foreground service using saved settings, if possible.
+     * Note that if the foreground service is *not* active, this will activate it.
+     * @param view
+     */
     public void onClickActivateAlarm(View view) {
         Log.d(TAG, "onClickActivateAlarm()");
         if (((App) this.getApplication()).state.isDeviceIDDefined()) {
@@ -72,11 +110,17 @@ public class HeartAlarm extends AppCompatActivity {
             serviceUpdateIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
             serviceUpdateIntent.putExtra(App.ALARM_ON, true);
             startService(serviceUpdateIntent);
+            setAlarmText();
+            ((App) this.getApplication()).state.setServiceRunning(true);
         } else {
             Toast.makeText(this, "Error: no device ID to connect with!", Toast.LENGTH_LONG).show();
         }
     }
 
+    /**
+     * Deactivates the alarm component of the foreground service.
+     * @param view
+     */
     public void onClickDeactivateAlarm(View view) {
         Log.d(TAG, "onClickDeactivateAlarm()");
         Intent serviceUpdateIntent = new Intent(this, MonitorService.class);
@@ -87,7 +131,9 @@ public class HeartAlarm extends AppCompatActivity {
         serviceUpdateIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
         serviceUpdateIntent.putExtra(App.ALARM_ON, false);
         startService(serviceUpdateIntent);
+        setAlarmText();
     }
+
 
     public void onClickSettings(View view) {
         Log.d(TAG, "onClickSettings()");
@@ -95,4 +141,21 @@ public class HeartAlarm extends AppCompatActivity {
         startActivity(setAlarmSettingsIntent);
     }
 
+    /**
+     * If the alarm is on, sets the relevant TextView to "Active"; otherwise restores it to default
+     */
+    private void setAlarmText() {
+        App app = (App) this.getApplication();
+        TextView alarmActiveField = findViewById(R.id.mainAlarmStatus);
+        if (app.state.isServiceRunning()) {
+            if (app.state.isHhrEnabled() || app.state.isLhrEnabled()) {
+                alarmActiveField.setText("Active");
+            } else {
+                alarmActiveField.setText("Off");
+            }
+        } else {
+            // No sensor connected
+            alarmActiveField.setText(R.string.mainActivityDefaultSensor);
+        }
+    }
 }
