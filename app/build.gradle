@@ -43,6 +43,7 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxjava:2.1.5'
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
      */
+    implementation 'com.jjoe64:graphview:4.2.2'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation files('libs/polar-ble-sdk.aar')
     implementation files('libs/polar-protobuf-release.aar')

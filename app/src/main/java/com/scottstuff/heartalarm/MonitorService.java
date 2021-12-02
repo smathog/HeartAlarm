@@ -19,6 +19,9 @@ import android.util.Log;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+
 import java.util.Optional;
 import java.util.UUID;
 
@@ -29,6 +32,7 @@ import polar.com.sdk.api.PolarBleApiDefaultImpl;
 import polar.com.sdk.api.errors.PolarInvalidArgument;
 import polar.com.sdk.api.model.PolarDeviceInfo;
 import polar.com.sdk.api.model.PolarHrData;
+import polar.com.sdk.api.model.PolarSensorSetting;
 
 
 public class MonitorService extends Service {
@@ -60,14 +64,21 @@ public class MonitorService extends Service {
     // Binder to return to activities
     private final IBinder binder = new LocalBinder();
 
-    // Activity
+    // Activity binding
     private Optional<UpdateActivity> boundActivity = Optional.empty();
+
+    // Series for graphs
+    private LineGraphSeries<DataPoint> heartRateSeries;
+    private int offset = 0;
 
     // Android boilerplate management
     @Override
     public void onCreate() {
         super.onCreate();
         Log.w(TAG, "onCreate()");
+
+        // Initialize graph series
+        heartRateSeries = new LineGraphSeries<>();
 
         //SoundPool setup
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -242,6 +253,8 @@ public class MonitorService extends Service {
             public void hrNotificationReceived(String identifier, PolarHrData data) {
                 Log.d(TAG,"HR value: " + data.hr + " rrsMs: " + data.rrsMs + " rr: " + data.rrs + " contact: " + data.contactStatus + "," + data.contactStatusSupported);
                 String text = "HR: " + data.hr + " RR: " + data.rrsMs;
+                heartRateSeries.appendData(new DataPoint(offset++, data.hr),
+                        true, Integer.MAX_VALUE, false);
                 update(Optional.of(text), Optional.of(data.hr));
                 am.sendUpdate(data.hr);
             }
@@ -371,6 +384,14 @@ public class MonitorService extends Service {
             final String defaultTitle = "HeartAlarm Monitor (Polar H10)";
             updateWithTitle(Optional.of(defaultTitle), Optional.empty());
         }
+    }
+
+    /**
+     * Getter for the heartRateSeries
+     * @return heartRateSeries
+     */
+    public LineGraphSeries<DataPoint> getHeartRateSeries() {
+        return heartRateSeries;
     }
 
 

@@ -11,6 +11,12 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
+
+import java.util.Calendar;
 import java.util.Optional;
 
 /**
@@ -23,6 +29,9 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
     // MonitorService instance to bind to, if present; else empty
     private Optional<MonitorService> serviceInstance = Optional.empty();
 
+    // Series for the graph in this activity:
+    private LineGraphSeries<DataPoint> heartRateSeries;
+
     // Callbacks for service binding
     private final ServiceConnection monitorConnection = new ServiceConnection() {
         @Override
@@ -32,6 +41,18 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
 
             // Register activity with service
             serviceInstance.get().registerActivity(HeartAlarm.this);
+
+            // Configure HR graph
+            GraphView graph = findViewById(R.id.entryHeartRateGraph);
+            heartRateSeries = serviceInstance.get().getHeartRateSeries();
+            graph.addSeries(heartRateSeries);
+            graph.getViewport().setXAxisBoundsManual(true);
+            graph.getViewport().setMinX(0);
+            graph.getViewport().setMaxX(40);
+            graph.getViewport().setYAxisBoundsManual(true);
+            graph.getViewport().setMinY(0);
+            graph.getViewport().setMaxY(220);
+            graph.getViewport().setScrollable(true);
         }
 
         @Override
@@ -87,6 +108,8 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
     @Override
     protected void onResume() {
         super.onResume();
+
+        // Bind MonitorService, if active
         bind();
     }
 
