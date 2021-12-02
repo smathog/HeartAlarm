@@ -22,6 +22,8 @@ import androidx.core.app.NotificationCompat;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -69,7 +71,6 @@ public class MonitorService extends Service {
 
     // Series for graphs
     private LineGraphSeries<DataPoint> heartRateSeries;
-    private int offset = 0;
 
     // Android boilerplate management
     @Override
@@ -253,7 +254,7 @@ public class MonitorService extends Service {
             public void hrNotificationReceived(String identifier, PolarHrData data) {
                 Log.d(TAG,"HR value: " + data.hr + " rrsMs: " + data.rrsMs + " rr: " + data.rrs + " contact: " + data.contactStatus + "," + data.contactStatusSupported);
                 String text = "HR: " + data.hr + " RR: " + data.rrsMs;
-                heartRateSeries.appendData(new DataPoint(offset++, data.hr),
+                heartRateSeries.appendData(new DataPoint(new Date(), data.hr),
                         true, Integer.MAX_VALUE, false);
                 update(Optional.of(text), Optional.of(data.hr));
                 am.sendUpdate(data.hr);

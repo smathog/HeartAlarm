@@ -16,6 +16,7 @@ import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Optional;
 
@@ -46,9 +47,14 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
             GraphView graph = findViewById(R.id.entryHeartRateGraph);
             heartRateSeries = serviceInstance.get().getHeartRateSeries();
             graph.addSeries(heartRateSeries);
+            // set date label formatter
+            graph.getGridLabelRenderer().setLabelFormatter
+                    (new DateAsXAxisLabelFormatter(HeartAlarm.this,
+                            new SimpleDateFormat("mm:ss")));
+            graph.getGridLabelRenderer().setNumHorizontalLabels(4);
             graph.getViewport().setXAxisBoundsManual(true);
-            graph.getViewport().setMinX(0);
-            graph.getViewport().setMaxX(40);
+            graph.getViewport().setMinX(heartRateSeries.getLowestValueX());
+            graph.getViewport().setMaxX(heartRateSeries.getLowestValueX() + 30000);
             graph.getViewport().setYAxisBoundsManual(true);
             graph.getViewport().setMinY(0);
             graph.getViewport().setMaxY(220);
