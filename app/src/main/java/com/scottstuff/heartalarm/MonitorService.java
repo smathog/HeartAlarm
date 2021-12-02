@@ -1,6 +1,7 @@
 package com.scottstuff.heartalarm;
 
 //My Imports
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -9,31 +10,26 @@ import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.SoundPool;
+import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
-import android.widget.Toast;
 
 //Imports for Polar API Stuff
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
+import java.util.Optional;
 import java.util.UUID;
 
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Function;
+
 import polar.com.sdk.api.PolarBleApi;
 import polar.com.sdk.api.PolarBleApiCallback;
 import polar.com.sdk.api.PolarBleApiDefaultImpl;
 import polar.com.sdk.api.errors.PolarInvalidArgument;
-import polar.com.sdk.api.model.PolarAccelerometerData;
 import polar.com.sdk.api.model.PolarDeviceInfo;
-import polar.com.sdk.api.model.PolarEcgData;
-import polar.com.sdk.api.model.PolarExerciseEntry;
 import polar.com.sdk.api.model.PolarHrData;
-import polar.com.sdk.api.model.PolarOhrPPGData;
-import polar.com.sdk.api.model.PolarOhrPPIData;
-import polar.com.sdk.api.model.PolarSensorSetting;
+
 
 public class MonitorService extends Service {
     //String for logcat tag
@@ -61,12 +57,18 @@ public class MonitorService extends Service {
     private int soundDisconnectID;
     private int soundDisconnectStreamID = -1;
 
+    // Binder to return to activities
+    private final IBinder binder = new LocalBinder();
+
+    // Activity
+    private Optional<UpdateActivity> boundActivity = Optional.empty();
+
+    // Android boilerplate management
     @Override
     public void onCreate() {
         super.onCreate();
         Log.w(TAG, "onCreate()");
 
-        //Setup SoundPool
         //SoundPool setup
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             AudioAttributes audioAttributes = new AudioAttributes
@@ -135,6 +137,9 @@ public class MonitorService extends Service {
         }
         startForeground(NOTIFICATION_ID, notification);
 
+        // Initial update
+        update(Optional.empty(), Optional.empty());
+
         //Polar API Stuff
         api = PolarBleApiDefaultImpl.defaultImplementation(this, PolarBleApi.ALL_FEATURES);
         api.setApiCallback(new PolarBleApiCallback() {
@@ -146,8 +151,9 @@ public class MonitorService extends Service {
             @Override
             public void deviceConnected(PolarDeviceInfo polarDeviceInfo) {
                 Log.d(TAG,"CONNECTED: " + polarDeviceInfo.deviceId);
-                updateNotification("Connected to Device "
-                        + ((App) MonitorService.this.getApplication()).state.getPolarDeviceID());
+                String text = "Connected to Device "
+                        + ((App) MonitorService.this.getApplication()).state.getPolarDeviceID();
+                update(Optional.of(text), Optional.empty());
                 if (soundConnectStreamID != -1)
                     sp.stop(soundConnectStreamID);
                 if (soundDisconnectStreamID != -1)
@@ -157,16 +163,18 @@ public class MonitorService extends Service {
             @Override
             public void deviceConnecting(PolarDeviceInfo polarDeviceInfo) {
                 Log.d(TAG,"CONNECTING: " + polarDeviceInfo.deviceId);
-                updateNotification("Connecting to Device "
-                        + ((App) MonitorService.this.getApplication()).state.getPolarDeviceID());
+                String text ="Connecting to Device "
+                        + ((App) MonitorService.this.getApplication()).state.getPolarDeviceID();
+                update(Optional.of(text), Optional.empty());
                 soundConnectStreamID = sp.play(soundConnectID, 1, 1, 1, -1, 1);
             }
 
             @Override
             public void deviceDisconnected(PolarDeviceInfo polarDeviceInfo) {
                 Log.d(TAG,"DISCONNECTED: " + polarDeviceInfo.deviceId);
-                updateNotification("Disconnected from Device "
-                        + ((App) MonitorService.this.getApplication()).state.getPolarDeviceID());
+                String text = "Disconnected from Device "
+                        + ((App) MonitorService.this.getApplication()).state.getPolarDeviceID();
+                update(Optional.of(text), Optional.empty());
                 soundDisconnectStreamID = sp.play(soundDisconnectID, 1,  1, 1, -1, 1);
                 try {
                     api.connectToDevice(((App) MonitorService.this.getApplication()).state.getPolarDeviceID());
@@ -209,8 +217,9 @@ public class MonitorService extends Service {
             public void hrFeatureReady(String identifier) {
                 Log.d(TAG,"HR READY: " + identifier);
                 // hr notifications are about to start
-                updateNotification("HR Notifications Ready From Device "
-                        + ((App) MonitorService.this.getApplication()).state.getPolarDeviceID());
+                String text = "HR Notifications Ready From Device "
+                        + ((App) MonitorService.this.getApplication()).state.getPolarDeviceID();
+                update(Optional.of(text), Optional.empty());
             }
 
             @Override
@@ -222,16 +231,18 @@ public class MonitorService extends Service {
             @Override
             public void batteryLevelReceived(String identifier, int level) {
                 Log.d(TAG,"BATTERY LEVEL: " + level);
-                updateNotification("Device "
+                String text = "Device "
                         + ((App) MonitorService.this.getApplication()).state.getPolarDeviceID()
-                        + " Battery Level: " + level);
+                        + " Battery Level: " + level;
+                update(Optional.of(text), Optional.empty());
 
             }
 
             @Override
             public void hrNotificationReceived(String identifier, PolarHrData data) {
                 Log.d(TAG,"HR value: " + data.hr + " rrsMs: " + data.rrsMs + " rr: " + data.rrs + " contact: " + data.contactStatus + "," + data.contactStatusSupported);
-                updateNotification("HR: " + data.hr + " RR: " + data.rrsMs);
+                String text = "HR: " + data.hr + " RR: " + data.rrsMs;
+                update(Optional.of(text), Optional.of(data.hr));
                 am.sendUpdate(data.hr);
             }
 
@@ -264,6 +275,68 @@ public class MonitorService extends Service {
         Log.w(TAG, "onStartCommand()");
         super.onStartCommand(intent, flags, startID);
         //Grab alarm stuff from intent, use to update alarm
+        updateFromIntent(intent);
+        return START_REDELIVER_INTENT;
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return binder;
+    }
+
+    public class LocalBinder extends Binder {
+        MonitorService getService() {
+            // Returns instance of MonitorService
+            return MonitorService.this;
+        }
+    }
+
+    // Public interface
+
+    /**
+     * Attempts to register an update-capable activity as bound to this service
+     * @param activity to be registered
+     * @return true if activity was registered, false if unable
+     */
+    public boolean registerActivity(UpdateActivity activity) {
+        if (boundActivity.isPresent()) {
+            return false;
+        } else {
+            boundActivity = Optional.of(activity);
+            return true;
+        }
+    }
+
+    /**
+     * De-registers the activity bound to this service.
+     */
+    public void deregisterActivity() {
+        boundActivity = Optional.empty();
+    }
+
+    /**
+     * Data class for passing information to activities via update method
+     */
+    public static class DataBundle {
+        // Optionals may or may not be present at the time of the request
+        public Optional<Integer> heartRate;
+
+        // Non-optionals are *always* present
+        public boolean alarmActive;
+    }
+
+    /**
+     * Class which represents an activity which is updated with via DataBundle from this service
+     */
+    public static abstract class UpdateActivity extends AppCompatActivity {
+        public abstract void serviceUpdate(DataBundle dataBundle);
+    }
+
+    /**
+     * Updates the MonitorService using the provided intent
+     * @param intent to use
+     */
+    public void updateFromIntent(Intent intent) {
         boolean lhrOn = intent.getBooleanExtra(App.LHR_ENABLED, false);
         boolean hhrOn = intent.getBooleanExtra(App.HHR_ENABLED, false);
         boolean alarmActive = intent.getBooleanExtra(App.ALARM_ON, false);
@@ -293,26 +366,54 @@ public class MonitorService extends Service {
             String updatedContentTitle = "(Alarm Active)"
                     + (lhrOn ? " -L " + lhrSetting : "")
                     + (hhrOn ? " -H " + hhrSetting : "");
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                builder.setContentTitle(updatedContentTitle);
-                notificationManager.notify(NOTIFICATION_ID, builder.build());
-            } else {
-                compatBuilder.setContentTitle(updatedContentTitle);
-                notificationManager.notify(NOTIFICATION_ID, compatBuilder.build());
-            }
+            updateWithTitle(Optional.of(updatedContentTitle), Optional.empty());
         } else {
             final String defaultTitle = "HeartAlarm Monitor (Polar H10)";
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                builder.setContentTitle(defaultTitle);
-                notificationManager.notify(NOTIFICATION_ID, builder.build());
-            } else {
-                compatBuilder.setContentTitle(defaultTitle);
-                notificationManager.notify(NOTIFICATION_ID, compatBuilder.build());
-            }
+            updateWithTitle(Optional.of(defaultTitle), Optional.empty());
         }
-        return START_REDELIVER_INTENT;
     }
 
+
+    // Private methods
+
+    /**
+     * General service-wide update function; possibly calls updateNotification and always invokes
+     * the update function for the registered activity, if any.
+     * @param notificationText Optional containing text if notification to be updated, otherwise
+     *                         empty.
+     * @param heartRate Optional containing heart rate, if available, otherwise empty.
+     */
+    private void update(Optional<String> notificationText, Optional<Integer> heartRate) {
+        notificationText.ifPresent(this::updateNotification);
+        if (boundActivity.isPresent()) {
+            DataBundle bundle = new DataBundle();
+            bundle.heartRate = heartRate;
+            bundle.alarmActive = am.alarmActive();
+            boundActivity.get().serviceUpdate(bundle);
+        }
+    }
+
+    /**
+     * General service-wide update function that possibly updates the title of the notification.
+     * @param titleText Optional containing possible update title of notification
+     * @param heartRate Optional containing heart rate if available
+     */
+    private void updateWithTitle(Optional<String> titleText, Optional<Integer> heartRate) {
+        titleText.ifPresent(this::updateNotificationTitle);
+        if (boundActivity.isPresent()) {
+            DataBundle bundle = new DataBundle();
+            bundle.heartRate = heartRate;
+            bundle.alarmActive = am.alarmActive();
+            boundActivity.get().serviceUpdate(bundle);
+        }
+    }
+
+
+
+    /**
+     * Updates the body text of the notification associated with the foreground service
+     * @param newText to be set in the notification
+     */
     private void updateNotification(String newText) {
         Log.w(TAG, "updateNotification()");
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
@@ -324,9 +425,18 @@ public class MonitorService extends Service {
         }
     }
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+    /**
+     * Updates the title text of the notification associated with the foreground service
+     * @param newTitle to be set in the notification
+     */
+    private void updateNotificationTitle(String newTitle) {
+        Log.w(TAG, "updateNotificationTitle()");
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            builder.setContentText(newTitle);
+            notificationManager.notify(NOTIFICATION_ID, builder.build());
+        } else {
+            compatBuilder.setContentText(newTitle);
+            notificationManager.notify(NOTIFICATION_ID, compatBuilder.build());
+        }
     }
 }

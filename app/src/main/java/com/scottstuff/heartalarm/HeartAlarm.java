@@ -1,21 +1,71 @@
 package com.scottstuff.heartalarm;
 
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Optional;
+
 /**
  * The primary class for managing the main/entry page's activity
  */
-public class HeartAlarm extends AppCompatActivity {
-    //logcat tag
+public class HeartAlarm extends MonitorService.UpdateActivity {
+    // logcat tag
     private static final String TAG = App.APP_TAG + ".HeartAlarm";
+
+    // MonitorService instance to bind to, if present; else empty
+    private Optional<MonitorService> serviceInstance = Optional.empty();
+
+    // Callbacks for service binding
+    private final ServiceConnection monitorConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MonitorService.LocalBinder binder = (MonitorService.LocalBinder) service;
+            serviceInstance = Optional.of(binder.getService());
+
+            // Register activity with service
+            serviceInstance.get().registerActivity(HeartAlarm.this);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            // Remove server instance
+            serviceInstance = Optional.empty();
+
+            // Set the text for the alarm and heart rate to their defaults
+            TextView alarmText = findViewById(R.id.mainAlarmStatus);
+            TextView heartRateText = findViewById(R.id.mainHRValue);
+            alarmText.setText(R.string.mainActivityDefaultSensor);
+            heartRateText.setText(R.string.mainActivityDefaultSensor);
+        }
+    };
+
+    // Update implementation
+    @Override
+    public void serviceUpdate(MonitorService.DataBundle dataBundle) {
+        // Set text for alarm
+        TextView alarmText = findViewById(R.id.mainAlarmStatus);
+        if (dataBundle.alarmActive) {
+            alarmText.setText("Active");
+        } else {
+            alarmText.setText("Off");
+        }
+
+        // Set text for heart rate
+        TextView heartRateText = findViewById(R.id.mainHRValue);
+        if (dataBundle.heartRate.isPresent()) {
+            heartRateText.setText(Integer.toString(dataBundle.heartRate.get()));
+        } else {
+            heartRateText.setText("Waiting...");
+        }
+    }
 
     /**
      * Standard activity onCreate, but checks to make sure Bluetooth is enabled.
@@ -32,12 +82,18 @@ public class HeartAlarm extends AppCompatActivity {
 
     /**
      * Updates the main page when resumed.
-     * Primarily updates to indicate whether the alarm is on.
+     * Binds to the MonitorService if one is active.
      */
     @Override
     protected void onResume() {
         super.onResume();
-        setAlarmText();
+        bind();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unbind();
     }
 
     /**
@@ -56,22 +112,23 @@ public class HeartAlarm extends AppCompatActivity {
      * @param view
      */
     public void onClickStartMonitor(View view) {
-        Log.d(TAG, "onClickStrtMonitor()");
+        Log.d(TAG, "onClickStartMonitor()");
         if (((App) this.getApplication()).state.isDeviceIDDefined()) {
             Utility.checkBluetooth(this);
-            Intent serviceIntent = new Intent(this, MonitorService.class);
-            serviceIntent.putExtra(App.HHR_ENABLED, ((App) this.getApplication()).state.isHhrEnabled());
-            serviceIntent.putExtra(App.HHR_SETTING, ((App) this.getApplication()).state.getHhrSetting());
-            serviceIntent.putExtra(App.LHR_ENABLED, ((App) this.getApplication()).state.isLhrEnabled());
-            serviceIntent.putExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
-            serviceIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
-            serviceIntent.putExtra(App.ALARM_ON, false);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                startForegroundService(serviceIntent);
-            else
-                startService(serviceIntent);
-            setAlarmText();
-            ((App) this.getApplication()).state.setServiceRunning(true);
+            if (!serviceInstance.isPresent()) {
+                Intent serviceIntent = new Intent(this, MonitorService.class);
+                serviceIntent.putExtra(App.HHR_ENABLED, ((App) this.getApplication()).state.isHhrEnabled());
+                serviceIntent.putExtra(App.HHR_SETTING, ((App) this.getApplication()).state.getHhrSetting());
+                serviceIntent.putExtra(App.LHR_ENABLED, ((App) this.getApplication()).state.isLhrEnabled());
+                serviceIntent.putExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
+                serviceIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
+                serviceIntent.putExtra(App.ALARM_ON, false);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                    startForegroundService(serviceIntent);
+                else
+                    startService(serviceIntent);
+                bind();
+            }
         } else {
             Toast.makeText(this, "Error: no device ID to connect with!", Toast.LENGTH_LONG).show();
         }
@@ -83,15 +140,18 @@ public class HeartAlarm extends AppCompatActivity {
      */
     public void onClickStopMonitor(View view) {
         Log.d(TAG, "onClickStopMonitor()");
+
+        // Unbind the service from the activity
+        unbind();
+
+        // Stop the service
         Intent serviceIntent = new Intent(this, MonitorService.class);
         stopService(serviceIntent);
-        setAlarmText();
-        ((App) this.getApplication()).state.setServiceRunning(false);
     }
 
     /**
      * Activates the alarm capacity of the foreground service using saved settings, if possible.
-     * Note that if the foreground service is *not* active, this will activate it.
+     * Will cause the foreground service to activate if not yet active.
      * @param view
      */
     public void onClickActivateAlarm(View view) {
@@ -109,31 +169,35 @@ public class HeartAlarm extends AppCompatActivity {
             serviceUpdateIntent.putExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
             serviceUpdateIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
             serviceUpdateIntent.putExtra(App.ALARM_ON, true);
-            startService(serviceUpdateIntent);
-            setAlarmText();
-            ((App) this.getApplication()).state.setServiceRunning(true);
+            if (serviceInstance.isPresent()) {
+                serviceInstance.get().updateFromIntent(serviceUpdateIntent);
+                Toast.makeText(this, "Service already running!", Toast.LENGTH_LONG).show();
+            } else {
+                startService(serviceUpdateIntent);
+                bind();
+            }
         } else {
             Toast.makeText(this, "Error: no device ID to connect with!", Toast.LENGTH_LONG).show();
         }
     }
 
     /**
-     * Deactivates the alarm component of the foreground service.
+     * Deactivates the alarm component of the foreground service, if it is active.
      * @param view
      */
     public void onClickDeactivateAlarm(View view) {
         Log.d(TAG, "onClickDeactivateAlarm()");
-        Intent serviceUpdateIntent = new Intent(this, MonitorService.class);
-        serviceUpdateIntent.putExtra(App.HHR_ENABLED, ((App) this.getApplication()).state.isHhrEnabled());
-        serviceUpdateIntent.putExtra(App.HHR_SETTING, ((App) this.getApplication()).state.getHhrSetting());
-        serviceUpdateIntent.putExtra(App.LHR_ENABLED, ((App) this.getApplication()).state.isLhrEnabled());
-        serviceUpdateIntent.putExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
-        serviceUpdateIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
-        serviceUpdateIntent.putExtra(App.ALARM_ON, false);
-        startService(serviceUpdateIntent);
-        setAlarmText();
+        if (serviceInstance.isPresent()) {
+            Intent serviceUpdateIntent = new Intent(this, MonitorService.class);
+            serviceUpdateIntent.putExtra(App.HHR_ENABLED, ((App) this.getApplication()).state.isHhrEnabled());
+            serviceUpdateIntent.putExtra(App.HHR_SETTING, ((App) this.getApplication()).state.getHhrSetting());
+            serviceUpdateIntent.putExtra(App.LHR_ENABLED, ((App) this.getApplication()).state.isLhrEnabled());
+            serviceUpdateIntent.putExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
+            serviceUpdateIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
+            serviceUpdateIntent.putExtra(App.ALARM_ON, false);
+            serviceInstance.get().updateFromIntent(serviceUpdateIntent);
+        }
     }
-
 
     public void onClickSettings(View view) {
         Log.d(TAG, "onClickSettings()");
@@ -142,20 +206,32 @@ public class HeartAlarm extends AppCompatActivity {
     }
 
     /**
-     * If the alarm is on, sets the relevant TextView to "Active"; otherwise restores it to default
+     * Helper function to bind the MonitorService
      */
-    private void setAlarmText() {
-        App app = (App) this.getApplication();
-        TextView alarmActiveField = findViewById(R.id.mainAlarmStatus);
-        if (app.state.isServiceRunning()) {
-            if (app.state.isHhrEnabled() || app.state.isLhrEnabled()) {
-                alarmActiveField.setText("Active");
-            } else {
-                alarmActiveField.setText("Off");
-            }
-        } else {
-            // No sensor connected
-            alarmActiveField.setText(R.string.mainActivityDefaultSensor);
-        }
+    private void bind() {
+        Intent serviceIntent = new Intent(this, MonitorService.class);
+        bindService(serviceIntent, monitorConnection, 0);
+    }
+
+
+    /**
+     * Helper function to unbind the MonitorService
+     */
+    private void unbind() {
+        // De-register activity with service
+        serviceInstance.ifPresent(MonitorService::deregisterActivity);
+
+        // Set instance to empty
+        serviceInstance = Optional.empty();
+
+        // Unbind service
+        unbindService(monitorConnection);
+
+        // Restore default text
+        // Set the text for the alarm and heart rate to their defaults
+        TextView alarmText = findViewById(R.id.mainAlarmStatus);
+        TextView heartRateText = findViewById(R.id.mainHRValue);
+        alarmText.setText(R.string.mainActivityDefaultSensor);
+        heartRateText.setText(R.string.mainActivityDefaultSensor);
     }
 }
