@@ -226,15 +226,16 @@ public class MonitorService extends Service {
                                 Calendar calendar = Calendar.getInstance();
                                 calendar.set(2000, Calendar.JANUARY, 1);
                                 calendar.setTimeInMillis(calendar.getTimeInMillis() + timeStamp.getAsLong());
-                                long deltaT = (TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS)
-                                        - timeStamp.getAsLong())
-                                        / polarEcgData.samples.size();
+                                long timeDiff = (TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS)
+                                        - timeStamp.getAsLong());
+                                Log.d(TAG, "     timeDiff: " + timeDiff);
+                                long deltaT = timeDiff / polarEcgData.samples.size();
                                 for (int i = 0; i < polarEcgData.samples.size(); ++i) {
                                     Log.d(TAG, "    yV: " + polarEcgData.samples.get(i) + "   time: " + calendar.getTime());
                                     calendar.setTimeInMillis(calendar.getTimeInMillis() + deltaT);
                                     ecgSeries.appendData(new DataPoint(calendar.getTime(), polarEcgData.samples.get(i)),
                                             true, Integer.MAX_VALUE, i != polarEcgData.samples.size() - 1);
-                                    Log.d(TAG, "Good append!");
+
                                 }
                             }
                             timeStamp = OptionalLong.of(TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS));

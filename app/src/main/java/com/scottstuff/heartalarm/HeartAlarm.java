@@ -3,6 +3,7 @@ package com.scottstuff.heartalarm;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -93,6 +94,10 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Utility.checkBluetooth(this);
+        GraphView hrGraph = findViewById(R.id.entryHeartRateGraph);
+        hrGraph.setTitle("Heart Rate");
+        GraphView ecgGraph = findViewById(R.id.entryECGGraph);
+        ecgGraph.setTitle("ECG");
     }
 
 
@@ -275,18 +280,27 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
     }
 
     private void ecgGraphSetup(GraphView graph, LineGraphSeries<DataPoint> series) {
+        // Style series
+        series.setColor(Color.BLACK);
         graph.addSeries(series);
-        // set date label formatter
+
+        // Style grid
         graph.getGridLabelRenderer().setLabelFormatter
                 (new DateAsXAxisLabelFormatter(HeartAlarm.this,
-                        new SimpleDateFormat("mm:ss")));
-        graph.getGridLabelRenderer().setNumHorizontalLabels(4);
+                        new SimpleDateFormat("ss")));
+        graph.getGridLabelRenderer().setNumHorizontalLabels(50);
+        graph.getGridLabelRenderer().setHorizontalLabelsVisible(false);
+        graph.getGridLabelRenderer().setNumVerticalLabels(20);
+        graph.getGridLabelRenderer().setVerticalLabelsVisible(false);
+        graph.getGridLabelRenderer().setGridColor(Color.RED);
+        graph.getGridLabelRenderer().setHighlightZeroLines(false);
+
+        // Viewport settings
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(series.getLowestValueX());
-        graph.getViewport().setMaxX(series.getLowestValueX() + 30000);
+        graph.getViewport().setMaxX(series.getLowestValueX() + 5000);
         graph.getViewport().setYAxisBoundsManual(true);
-        graph.getViewport().setMinY(-220);
-        graph.getViewport().setMaxY(220);
-        graph.getViewport().setScalable(true);
+        graph.getViewport().setMinY(-1000);
+        graph.getViewport().setMaxY(1000);
     }
 }
