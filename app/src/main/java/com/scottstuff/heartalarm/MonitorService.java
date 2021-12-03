@@ -22,13 +22,12 @@ import androidx.core.app.NotificationCompat;
 // Graph imports
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.jjoe64.graphview.series.PointsGraphSeries;
 
 import org.reactivestreams.Publisher;
 
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.OptionalLong;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -223,22 +222,27 @@ public class MonitorService extends Service {
                         polarEcgData -> {
                             // Must be a previous timestamp to execute
                             if (timeStamp.isPresent() && !polarEcgData.samples.isEmpty()) {
-                                Calendar calendar = Calendar.getInstance();
-                                calendar.set(2000, Calendar.JANUARY, 1);
-                                calendar.setTimeInMillis(calendar.getTimeInMillis() + timeStamp.getAsLong());
                                 long timeDiff = (TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS)
                                         - timeStamp.getAsLong());
                                 Log.d(TAG, "     timeDiff: " + timeDiff);
                                 long deltaT = timeDiff / polarEcgData.samples.size();
+                                long sampleTime = timeStamp.getAsLong();
                                 for (int i = 0; i < polarEcgData.samples.size(); ++i) {
-                                    Log.d(TAG, "    yV: " + polarEcgData.samples.get(i) + "   time: " + calendar.getTime());
-                                    calendar.setTimeInMillis(calendar.getTimeInMillis() + deltaT);
-                                    ecgSeries.appendData(new DataPoint(calendar.getTime(), polarEcgData.samples.get(i)),
+                                    sampleTime += deltaT;
+                                    Log.d(TAG, "    yV: " + polarEcgData.samples.get(i) + "   time: " + sampleTime);
+                                    if (i == 0) {
+                                        Log.d(TAG, "startstoptime: " + " start " + sampleTime);
+                                    } else if ( i == polarEcgData.samples.size() - 1) {
+                                        Log.d(TAG, "startstoptime: " + " stop " + sampleTime);
+                                        timeStamp = OptionalLong.of(TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS));
+                                    }
+                                    ecgSeries.appendData(new DataPoint(sampleTime, polarEcgData.samples.get(i)),
                                             true, Integer.MAX_VALUE, i != polarEcgData.samples.size() - 1);
 
                                 }
+                            } else {
+                                timeStamp = OptionalLong.of(TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS));
                             }
-                            timeStamp = OptionalLong.of(TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS));
                         },
                         throwable -> Log.e(TAG, "" + throwable.toString()),
                         () -> Log.d(TAG, "complete")
