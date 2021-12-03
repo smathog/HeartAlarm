@@ -30,9 +30,6 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
     // MonitorService instance to bind to, if present; else empty
     private Optional<MonitorService> serviceInstance = Optional.empty();
 
-    // Series for the graph in this activity:
-    private LineGraphSeries<DataPoint> heartRateSeries;
-
     // Callbacks for service binding
     private final ServiceConnection monitorConnection = new ServiceConnection() {
         @Override
@@ -44,21 +41,13 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
             serviceInstance.get().registerActivity(HeartAlarm.this);
 
             // Configure HR graph
-            GraphView graph = findViewById(R.id.entryHeartRateGraph);
-            heartRateSeries = serviceInstance.get().getHeartRateSeries();
-            graph.addSeries(heartRateSeries);
-            // set date label formatter
-            graph.getGridLabelRenderer().setLabelFormatter
-                    (new DateAsXAxisLabelFormatter(HeartAlarm.this,
-                            new SimpleDateFormat("mm:ss")));
-            graph.getGridLabelRenderer().setNumHorizontalLabels(4);
-            graph.getViewport().setXAxisBoundsManual(true);
-            graph.getViewport().setMinX(heartRateSeries.getLowestValueX());
-            graph.getViewport().setMaxX(heartRateSeries.getLowestValueX() + 30000);
-            graph.getViewport().setYAxisBoundsManual(true);
-            graph.getViewport().setMinY(0);
-            graph.getViewport().setMaxY(220);
-            graph.getViewport().setScrollable(true);
+            hrGraphSetup(findViewById(R.id.entryHeartRateGraph),
+                    serviceInstance.get().getHeartRateSeries());
+
+            // Configure ECG graph
+            ecgGraphSetup(findViewById(R.id.entryECGGraph),
+                    serviceInstance.get().getEcgSeries());
+
         }
 
         @Override
@@ -262,5 +251,42 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
         TextView heartRateText = findViewById(R.id.mainHRValue);
         alarmText.setText(R.string.mainActivityDefaultSensor);
         heartRateText.setText(R.string.mainActivityDefaultSensor);
+    }
+
+    /**
+     * Helper function to initialize HR graph with series into a readable format
+     * @param graph to be initialized
+     * @param series to use for data
+     */
+    private void hrGraphSetup(GraphView graph, LineGraphSeries<DataPoint> series) {
+        graph.addSeries(series);
+        // set date label formatter
+        graph.getGridLabelRenderer().setLabelFormatter
+                (new DateAsXAxisLabelFormatter(HeartAlarm.this,
+                        new SimpleDateFormat("mm:ss")));
+        graph.getGridLabelRenderer().setNumHorizontalLabels(4);
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMinX(series.getLowestValueX());
+        graph.getViewport().setMaxX(series.getLowestValueX() + 30000);
+        graph.getViewport().setYAxisBoundsManual(true);
+        graph.getViewport().setMinY(0);
+        graph.getViewport().setMaxY(220);
+        graph.getViewport().setScrollable(true);
+    }
+
+    private void ecgGraphSetup(GraphView graph, LineGraphSeries<DataPoint> series) {
+        graph.addSeries(series);
+        // set date label formatter
+        graph.getGridLabelRenderer().setLabelFormatter
+                (new DateAsXAxisLabelFormatter(HeartAlarm.this,
+                        new SimpleDateFormat("mm:ss")));
+        graph.getGridLabelRenderer().setNumHorizontalLabels(4);
+        graph.getViewport().setXAxisBoundsManual(true);
+        graph.getViewport().setMinX(series.getLowestValueX());
+        graph.getViewport().setMaxX(series.getLowestValueX() + 30000);
+        graph.getViewport().setYAxisBoundsManual(true);
+        graph.getViewport().setMinY(-220);
+        graph.getViewport().setMaxY(220);
+        graph.getViewport().setScalable(true);
     }
 }

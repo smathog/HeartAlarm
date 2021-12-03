@@ -15,24 +15,32 @@ import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
-//Imports for Polar API Stuff
+// Imports for Polar API Stuff
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
+// Graph imports
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+
+import org.reactivestreams.Publisher;
 
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalLong;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 
+import io.reactivex.rxjava3.functions.Function;
 import polar.com.sdk.api.PolarBleApi;
 import polar.com.sdk.api.PolarBleApiCallback;
 import polar.com.sdk.api.PolarBleApiDefaultImpl;
 import polar.com.sdk.api.errors.PolarInvalidArgument;
 import polar.com.sdk.api.model.PolarDeviceInfo;
+import polar.com.sdk.api.model.PolarEcgData;
 import polar.com.sdk.api.model.PolarHrData;
 import polar.com.sdk.api.model.PolarSensorSetting;
 
@@ -71,6 +79,10 @@ public class MonitorService extends Service {
 
     // Series for graphs
     private LineGraphSeries<DataPoint> heartRateSeries;
+    private LineGraphSeries<DataPoint> ecgSeries;
+
+    // Used to record the previous sample's timestamp:
+    private OptionalLong timeStamp = OptionalLong.empty();
 
     // Android boilerplate management
     @Override
@@ -80,6 +92,7 @@ public class MonitorService extends Service {
 
         // Initialize graph series
         heartRateSeries = new LineGraphSeries<>();
+        ecgSeries = new LineGraphSeries<>();
 
         //SoundPool setup
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -198,7 +211,37 @@ public class MonitorService extends Service {
             @Override
             public void ecgFeatureReady(String identifier) {
                 Log.d(TAG,"ECG READY: " + identifier);
-                // ecg streaming can be started now if needed
+                // ecg streaming setup
+                api.requestEcgSettings(((App) MonitorService.this.getApplication()).state.getPolarDeviceID())
+                        .toFlowable()
+                        .flatMap((Function<PolarSensorSetting, Publisher<PolarEcgData>>) polarEcgSettings -> {
+                            PolarSensorSetting sensorSetting = polarEcgSettings.maxSettings();
+                            return api.startEcgStreaming((
+                                    ((App) MonitorService.this.getApplication()).state.getPolarDeviceID()),
+                                    sensorSetting);
+                        }).subscribe(
+                        polarEcgData -> {
+                            // Must be a previous timestamp to execute
+                            if (timeStamp.isPresent() && !polarEcgData.samples.isEmpty()) {
+                                Calendar calendar = Calendar.getInstance();
+                                calendar.set(2000, Calendar.JANUARY, 1);
+                                calendar.setTimeInMillis(calendar.getTimeInMillis() + timeStamp.getAsLong());
+                                long deltaT = (TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS)
+                                        - timeStamp.getAsLong())
+                                        / polarEcgData.samples.size();
+                                for (int i = 0; i < polarEcgData.samples.size(); ++i) {
+                                    Log.d(TAG, "    yV: " + polarEcgData.samples.get(i) + "   time: " + calendar.getTime());
+                                    calendar.setTimeInMillis(calendar.getTimeInMillis() + deltaT);
+                                    ecgSeries.appendData(new DataPoint(calendar.getTime(), polarEcgData.samples.get(i)),
+                                            true, Integer.MAX_VALUE, i != polarEcgData.samples.size() - 1);
+                                    Log.d(TAG, "Good append!");
+                                }
+                            }
+                            timeStamp = OptionalLong.of(TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS));
+                        },
+                        throwable -> Log.e(TAG, "" + throwable.toString()),
+                        () -> Log.d(TAG, "complete")
+                );
             }
 
             @Override
@@ -393,6 +436,14 @@ public class MonitorService extends Service {
      */
     public LineGraphSeries<DataPoint> getHeartRateSeries() {
         return heartRateSeries;
+    }
+
+    /**
+     * Getter for the ECG data series
+     * @return ecgSeries
+     */
+    public LineGraphSeries<DataPoint> getEcgSeries() {
+        return ecgSeries;
     }
 
 
