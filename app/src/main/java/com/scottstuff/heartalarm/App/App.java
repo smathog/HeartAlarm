@@ -1,4 +1,4 @@
-package com.scottstuff.heartalarm;
+package com.scottstuff.heartalarm.App;
 
 import android.app.Application;
 import android.app.NotificationChannel;
@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.scottstuff.heartalarm.Activities.AlarmSettings;
+import com.scottstuff.heartalarm.R;
 
 public class App extends Application {
     //Logcat tags
@@ -61,7 +62,7 @@ public class App extends Application {
         }
     }
 
-    class State {
+    public class State {
         //Logcat tag
         private static final String TAG = App.TAG + ".State";
 

@@ -16,10 +16,10 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-import com.scottstuff.heartalarm.App;
-import com.scottstuff.heartalarm.MonitorService;
+import com.scottstuff.heartalarm.App.App;
+import com.scottstuff.heartalarm.Service.MonitorService;
 import com.scottstuff.heartalarm.R;
-import com.scottstuff.heartalarm.Utility;
+import com.scottstuff.heartalarm.Utility.Utility;
 
 import java.text.SimpleDateFormat;
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package com.scottstuff.heartalarm;
+package com.scottstuff.heartalarm.Service;
 
 //My Imports
 import android.app.Notification;
@@ -23,6 +23,9 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.scottstuff.heartalarm.Activities.AlarmSettings;
 import com.scottstuff.heartalarm.Activities.HeartAlarm;
+import com.scottstuff.heartalarm.Alarm.AlarmManager;
+import com.scottstuff.heartalarm.App.App;
+import com.scottstuff.heartalarm.R;
 
 import org.reactivestreams.Publisher;
 
@@ -347,7 +350,7 @@ public class MonitorService extends Service {
     }
 
     public class LocalBinder extends Binder {
-        MonitorService getService() {
+        public MonitorService getService() {
             // Returns instance of MonitorService
             return MonitorService.this;
         }

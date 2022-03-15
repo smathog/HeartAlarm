@@ -1,10 +1,12 @@
-package com.scottstuff.heartalarm;
+package com.scottstuff.heartalarm.Utility;
 
 import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.util.Log;
+
+import com.scottstuff.heartalarm.App.App;
 
 public class Utility {
     //Logcat tag

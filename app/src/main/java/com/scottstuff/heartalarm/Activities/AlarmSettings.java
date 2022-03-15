@@ -5,20 +5,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
-import android.view.inputmethod.InputMethod;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
-import com.scottstuff.heartalarm.App;
-import com.scottstuff.heartalarm.MonitorService;
+import com.scottstuff.heartalarm.App.App;
+import com.scottstuff.heartalarm.Service.MonitorService;
 import com.scottstuff.heartalarm.R;
-import com.scottstuff.heartalarm.Utility;
+import com.scottstuff.heartalarm.Utility.Utility;
 
 public class AlarmSettings extends AppCompatActivity {
     //Logcat tag
