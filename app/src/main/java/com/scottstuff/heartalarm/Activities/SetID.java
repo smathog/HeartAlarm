@@ -1,4 +1,4 @@
-package com.scottstuff.heartalarm;
+package com.scottstuff.heartalarm.Activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -10,6 +10,9 @@ import android.view.inputmethod.InputMethod;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.scottstuff.heartalarm.App;
+import com.scottstuff.heartalarm.R;
 
 public class SetID extends AppCompatActivity {
     //Logcat tag

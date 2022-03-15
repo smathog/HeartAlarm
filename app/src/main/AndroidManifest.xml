@@ -21,15 +21,15 @@
             android:exported="true"></service>
 
         <activity
-            android:name=".AlarmSettings"
+            android:name=".Activities.AlarmSettings"
             android:label="Alarm Settings"
             android:screenOrientation="portrait"></activity>
         <activity
-            android:name=".SetID"
+            android:name=".Activities.SetID"
             android:label="Set Polar Device ID"
             android:screenOrientation="portrait"></activity>
         <activity
-            android:name=".HeartAlarm"
+            android:name=".Activities.HeartAlarm"
             android:label="HeartAlarm"
             android:screenOrientation="portrait">
             <intent-filter>

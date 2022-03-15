@@ -1,4 +1,4 @@
-package com.scottstuff.heartalarm;
+package com.scottstuff.heartalarm.Activities;
 
 import android.content.ComponentName;
 import android.content.Intent;
@@ -16,10 +16,12 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-import com.jjoe64.graphview.series.PointsGraphSeries;
+import com.scottstuff.heartalarm.App;
+import com.scottstuff.heartalarm.MonitorService;
+import com.scottstuff.heartalarm.R;
+import com.scottstuff.heartalarm.Utility;
 
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Optional;
 
 /**

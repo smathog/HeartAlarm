@@ -1,7 +1,6 @@
 package com.scottstuff.heartalarm;
 
 //My Imports
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -22,7 +21,8 @@ import androidx.core.app.NotificationCompat;
 // Graph imports
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
-import com.jjoe64.graphview.series.PointsGraphSeries;
+import com.scottstuff.heartalarm.Activities.AlarmSettings;
+import com.scottstuff.heartalarm.Activities.HeartAlarm;
 
 import org.reactivestreams.Publisher;
 

@@ -1,4 +1,4 @@
-package com.scottstuff.heartalarm;
+package com.scottstuff.heartalarm.Activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -14,6 +14,11 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Toast;
+
+import com.scottstuff.heartalarm.App;
+import com.scottstuff.heartalarm.MonitorService;
+import com.scottstuff.heartalarm.R;
+import com.scottstuff.heartalarm.Utility;
 
 public class AlarmSettings extends AppCompatActivity {
     //Logcat tag

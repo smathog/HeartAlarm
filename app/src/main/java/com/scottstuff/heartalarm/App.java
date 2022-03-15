@@ -1,13 +1,12 @@
 package com.scottstuff.heartalarm;
 
-import android.app.Activity;
 import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.bluetooth.BluetoothAdapter;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.util.Log;
+
+import com.scottstuff.heartalarm.Activities.AlarmSettings;
 
 public class App extends Application {
     //Logcat tags
