@@ -12,6 +12,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
 import com.jjoe64.graphview.series.DataPoint;
@@ -22,42 +24,41 @@ import com.scottstuff.heartalarm.R;
 import com.scottstuff.heartalarm.Utility.Utility;
 
 import java.text.SimpleDateFormat;
-import java.util.Optional;
 
 /**
  * The primary class for managing the main/entry page's activity
  */
-public class HeartAlarm extends MonitorService.UpdateActivity {
+public class HeartAlarm
+        extends AppCompatActivity
+        implements MonitorService.UpdateFromService {
     // logcat tag
     private static final String TAG = App.APP_TAG + ".HeartAlarm";
 
-    // MonitorService instance to bind to, if present; else empty
-    private Optional<MonitorService> serviceInstance = Optional.empty();
+    // MonitorService instance to bind to, if present; else null
+    private MonitorService serviceInstance;
 
     // Callbacks for service binding
     private final ServiceConnection monitorConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             MonitorService.LocalBinder binder = (MonitorService.LocalBinder) service;
-            serviceInstance = Optional.of(binder.getService());
+            serviceInstance = binder.getService();
 
             // Register activity with service
-            serviceInstance.get().registerActivity(HeartAlarm.this);
+            serviceInstance.registerActivity(HeartAlarm.this);
 
-            // Configure HR graph
-            hrGraphSetup(findViewById(R.id.entryHeartRateGraph),
-                    serviceInstance.get().getHeartRateSeries());
+            // Bind series for HR graph
+            hrGraphSeries();
 
-            // Configure ECG graph
-            ecgGraphSetup(findViewById(R.id.entryECGGraph),
-                    serviceInstance.get().getEcgSeries());
+            // Bind series for ECG graph
+            ecgGraphSeries();
 
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             // Remove server instance
-            serviceInstance = Optional.empty();
+            serviceInstance = null;
 
             // Set the text for the alarm and heart rate to their defaults
             TextView alarmText = findViewById(R.id.mainAlarmStatus);
@@ -80,8 +81,8 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
 
         // Set text for heart rate
         TextView heartRateText = findViewById(R.id.mainHRValue);
-        if (dataBundle.heartRate.isPresent()) {
-            heartRateText.setText(Integer.toString(dataBundle.heartRate.get()));
+        if (dataBundle.heartRate != null) {
+            heartRateText.setText(Integer.toString(dataBundle.heartRate));
         } else {
             heartRateText.setText("Waiting...");
         }
@@ -97,10 +98,8 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Utility.checkBluetooth(this);
-        GraphView hrGraph = findViewById(R.id.entryHeartRateGraph);
-        hrGraph.setTitle("Heart Rate");
-        GraphView ecgGraph = findViewById(R.id.entryECGGraph);
-        ecgGraph.setTitle("ECG");
+        hrGraphSetup();
+        ecgGraphSetup();
     }
 
 
@@ -141,7 +140,7 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
         Log.d(TAG, "onClickStartMonitor()");
         if (((App) this.getApplication()).state.isDeviceIDDefined()) {
             Utility.checkBluetooth(this);
-            if (!serviceInstance.isPresent()) {
+            if (serviceInstance == null) {
                 Intent serviceIntent = new Intent(this, MonitorService.class);
                 serviceIntent.putExtra(App.HHR_ENABLED, ((App) this.getApplication()).state.isHhrEnabled());
                 serviceIntent.putExtra(App.HHR_SETTING, ((App) this.getApplication()).state.getHhrSetting());
@@ -195,8 +194,8 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
             serviceUpdateIntent.putExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
             serviceUpdateIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
             serviceUpdateIntent.putExtra(App.ALARM_ON, true);
-            if (serviceInstance.isPresent()) {
-                serviceInstance.get().updateFromIntent(serviceUpdateIntent);
+            if (serviceInstance != null) {
+                serviceInstance.updateFromIntent(serviceUpdateIntent);
                 Toast.makeText(this, "Service already running!", Toast.LENGTH_LONG).show();
             } else {
                 startService(serviceUpdateIntent);
@@ -213,7 +212,7 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
      */
     public void onClickDeactivateAlarm(View view) {
         Log.d(TAG, "onClickDeactivateAlarm()");
-        if (serviceInstance.isPresent()) {
+        if (serviceInstance != null) {
             Intent serviceUpdateIntent = new Intent(this, MonitorService.class);
             serviceUpdateIntent.putExtra(App.HHR_ENABLED, ((App) this.getApplication()).state.isHhrEnabled());
             serviceUpdateIntent.putExtra(App.HHR_SETTING, ((App) this.getApplication()).state.getHhrSetting());
@@ -221,7 +220,7 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
             serviceUpdateIntent.putExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
             serviceUpdateIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
             serviceUpdateIntent.putExtra(App.ALARM_ON, false);
-            serviceInstance.get().updateFromIntent(serviceUpdateIntent);
+            serviceInstance.updateFromIntent(serviceUpdateIntent);
         }
     }
 
@@ -245,10 +244,12 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
      */
     private void unbind() {
         // De-register activity with service
-        serviceInstance.ifPresent(MonitorService::deregisterActivity);
+        if (serviceInstance != null) {
+            serviceInstance.deregisterActivity();
+        }
 
         // Set instance to empty
-        serviceInstance = Optional.empty();
+        serviceInstance = null;
 
         // Unbind service
         unbindService(monitorConnection);
@@ -263,16 +264,26 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
 
     /**
      * Helper function to initialize HR graph with series into a readable format
-     * @param graph to be initialized
-     * @param series to use for data
      */
-    private void hrGraphSetup(GraphView graph, LineGraphSeries<DataPoint> series) {
-        graph.addSeries(series);
+    private void hrGraphSetup() {
+        GraphView graph = findViewById(R.id.entryHeartRateGraph);
+        graph.setTitle("Heart Rate");
         // set date label formatter
         graph.getGridLabelRenderer().setLabelFormatter
                 (new DateAsXAxisLabelFormatter(HeartAlarm.this,
                         new SimpleDateFormat("mm:ss")));
         graph.getGridLabelRenderer().setNumHorizontalLabels(4);
+    }
+
+    /**
+     * Helper function to bind and configure the HR series
+     */
+    private void hrGraphSeries() {
+        GraphView graph = findViewById(R.id.entryHeartRateGraph);
+        LineGraphSeries<DataPoint> series = serviceInstance.getDataDisplay().getHeartRateSeries();
+        graph.addSeries(series);
+
+        // Viewport configuration
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(series.getLowestValueX());
         graph.getViewport().setMaxX(series.getLowestValueX() + 30000);
@@ -282,26 +293,40 @@ public class HeartAlarm extends MonitorService.UpdateActivity {
         graph.getViewport().setScrollable(true);
     }
 
-    private void ecgGraphSetup(GraphView graph, LineGraphSeries<DataPoint> series) {
+    /**
+     * Helper function to build ECG graph
+     */
+    private void ecgGraphSetup() {
+        GraphView graph = findViewById(R.id.entryECGGraph);
+        graph.setTitle("ECG");
+        // Style grid
+        graph.getGridLabelRenderer().setLabelFormatter
+                (new DateAsXAxisLabelFormatter(HeartAlarm.this,
+                        new SimpleDateFormat("ss:SS")));
+        graph.getGridLabelRenderer().setNumHorizontalLabels(5);
+        graph.getGridLabelRenderer().setHorizontalLabelsVisible(true);
+        graph.getGridLabelRenderer().setNumVerticalLabels(10);
+        graph.getGridLabelRenderer().setVerticalLabelsVisible(true);
+        graph.getGridLabelRenderer().setGridColor(Color.RED);
+        graph.getGridLabelRenderer().setHighlightZeroLines(false);
+    }
+
+    /**
+     * Helper function to set up graph once DataDisplay is ready
+     */
+    private void ecgGraphSeries() {
+        GraphView graph = findViewById(R.id.entryECGGraph);
+
+        LineGraphSeries<DataPoint> series = serviceInstance.getDataDisplay().getEcgSeries();
+
         // Style series
         series.setColor(Color.BLACK);
         graph.addSeries(series);
 
-        // Style grid
-        graph.getGridLabelRenderer().setLabelFormatter
-                (new DateAsXAxisLabelFormatter(HeartAlarm.this,
-                        new SimpleDateFormat("ss")));
-        graph.getGridLabelRenderer().setNumHorizontalLabels(50);
-        graph.getGridLabelRenderer().setHorizontalLabelsVisible(false);
-        graph.getGridLabelRenderer().setNumVerticalLabels(20);
-        graph.getGridLabelRenderer().setVerticalLabelsVisible(false);
-        graph.getGridLabelRenderer().setGridColor(Color.RED);
-        graph.getGridLabelRenderer().setHighlightZeroLines(false);
-
         // Viewport settings
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(series.getLowestValueX());
-        graph.getViewport().setMaxX(series.getLowestValueX() + 5000);
+        graph.getViewport().setMaxX(series.getLowestValueX() + 2000);
         graph.getViewport().setYAxisBoundsManual(true);
         graph.getViewport().setMinY(-1000);
         graph.getViewport().setMaxY(1000);
