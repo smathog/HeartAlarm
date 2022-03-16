@@ -38,8 +38,14 @@ public class DataDisplay {
      * @param hr - new datapoint
      */
     public void updateHeartRateSeries(int hr) {
-        activity.runOnUiThread(() -> heartRateSeries.appendData(new DataPoint(new Date(), hr),
-                true, Integer.MAX_VALUE, false));
+        // If bound to an activity, use UI thread to avoid concurrentModificationException
+        if (activity != null) {
+            activity.runOnUiThread(() -> heartRateSeries.appendData(new DataPoint(new Date(), hr),
+                    true, Integer.MAX_VALUE, false));
+        } else { // If not, can just use the current thread and not bother rerendering
+            heartRateSeries.appendData(new DataPoint(new Date(), hr),
+                    true, Integer.MAX_VALUE, true);
+        }
     }
 
     /**
@@ -48,9 +54,15 @@ public class DataDisplay {
      * @param ecgData - new datapoint
      */
     public void updateECGSeries(long timeStamp, int ecgData) {
-        activity.runOnUiThread(() -> ecgSeries.appendData(new DataPoint(timeStamp, ecgData),
+        // If bound to an activity, use UI thread to avoid concurrentModificationException
+        if (activity != null) {
+            activity.runOnUiThread(() -> ecgSeries.appendData(new DataPoint(timeStamp, ecgData),
                     true, Integer.MAX_VALUE, false)
-        );
+            );
+        } else { // If not, can just use the current thread and not bother rerendering
+            ecgSeries.appendData(new DataPoint(timeStamp, ecgData),
+                    true, Integer.MAX_VALUE, true);
+        }
     }
 
 
