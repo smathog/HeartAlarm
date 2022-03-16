@@ -52,7 +52,6 @@ public class HeartAlarm
 
             // Bind series for ECG graph
             ecgGraphSeries();
-
         }
 
         @Override

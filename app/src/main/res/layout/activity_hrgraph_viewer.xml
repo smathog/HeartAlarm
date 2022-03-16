@@ -17,7 +17,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <com.jjoe64.graphview.GraphView
-            android:id="@+id/entryHeartRateGraph"
+            android:id="@+id/bigHeartRateGraph"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="0.2"

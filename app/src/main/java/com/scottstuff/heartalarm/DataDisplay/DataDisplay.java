@@ -19,6 +19,9 @@ public class DataDisplay {
     // Link to the activity consuming the data
     private Activity activity;
 
+    /**
+     * Default constructor
+     */
     public DataDisplay() {
         // Initialize graph series
         heartRateSeries = new LineGraphSeries<>();
