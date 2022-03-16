@@ -91,13 +91,14 @@
         </LinearLayout>
 
         <com.jjoe64.graphview.GraphView
+            android:id="@+id/entryHeartRateGraph"
             android:layout_width="fill_parent"
             android:layout_height="200dip"
-            android:padding="8dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
-            android:id="@+id/entryHeartRateGraph" />
+            android:onClick="onClickHRGraph"
+            android:padding="8dp" />
 
         <com.jjoe64.graphview.GraphView
             android:layout_width="fill_parent"

@@ -26,4 +26,7 @@
     <string name="activitySetIDConnectButtonLabel">Connect</string>
     <string name="mainActivityStopMonitorLabel">Stop Monitor</string>
     <string name="mainActivityStartMonitorLabel">Start Monitor</string>
+    <string name="not_recording">Not Recording</string>
+    <string name="recording">Recording</string>
+    <string name="select_source">Select Source</string>
 </resources>

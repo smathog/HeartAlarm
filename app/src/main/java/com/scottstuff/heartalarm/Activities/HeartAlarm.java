@@ -121,6 +121,18 @@ public class HeartAlarm
         unbind();
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unbind();
+    }
+
+    public void onClickHRGraph(View view) {
+        Log.d(TAG, "onClickHRGraph");
+        Intent hrGraphIntent = new Intent(this, HRGraphViewer.class);
+        startActivity(hrGraphIntent);
+    }
+
     /**
      * Launches the activity to set Polar Device ID
      * @param view
@@ -246,13 +258,12 @@ public class HeartAlarm
         // De-register activity with service
         if (serviceInstance != null) {
             serviceInstance.deregisterActivity();
+            // Unbind service
+            unbindService(monitorConnection);
         }
 
         // Set instance to empty
         serviceInstance = null;
-
-        // Unbind service
-        unbindService(monitorConnection);
 
         // Restore default text
         // Set the text for the alarm and heart rate to their defaults
