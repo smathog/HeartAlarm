@@ -31,6 +31,7 @@ import com.scottstuff.heartalarm.DataSource.ECGDataSource;
 import com.scottstuff.heartalarm.DataSource.HRDataSource;
 import com.scottstuff.heartalarm.DataSource.StandardPolarDataSource;
 import com.scottstuff.heartalarm.R;
+import com.scottstuff.heartalarm.SQL.hrSQLRecorder;
 
 import org.reactivestreams.Publisher;
 
@@ -92,6 +93,9 @@ public class MonitorService extends Service {
     // Data Display
     private DataDisplay display;
 
+    // HR recorder
+    private hrSQLRecorder hrRecorder;
+
     // Android boilerplate management
     @Override
     public void onCreate() {
@@ -103,9 +107,6 @@ public class MonitorService extends Service {
         StandardPolarDataSource temp = new StandardPolarDataSource(this);
         ecgDataSource = temp;
         hrDataSource = temp;
-
-        // Set up data display
-        this.display = new DataDisplay();
 
         //SoundPool setup
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -221,15 +222,24 @@ public class MonitorService extends Service {
      */
     public void registerActivity(UpdateFromService activity) {
         boundActivity = activity;
+
+        // Set up data display
+        this.display = new DataDisplay();
         display.bindActivity((Activity) activity);
+        Log.w(TAG, String.format("display bound to activity %s", activity.getClass()));
     }
 
     /**
      * De-registers the activity bound to this service.
      */
     public void deregisterActivity() {
+        String boundClass = boundActivity.getClass().toString();
         boundActivity = null;
+
+        // If no activity is bound to the service, no need for an active DataDisplay
         display.bindActivity(null);
+        display = null;
+        Log.w(TAG, String.format("display unbound from activity %s", boundClass));
     }
 
     /**
@@ -297,15 +307,34 @@ public class MonitorService extends Service {
      * @param hr - Relevant update data
      */
     public void receiveHRUpdate(int hr) {
-        display.updateHeartRateSeries(hr);
+        // Only update display if one present (e.g. activity with graph active)
+        if (display != null) {
+            display.updateHeartRateSeries(hr);
+        }
     }
 
+    /**
+     * Update the service with a new ECG datapoint
+     * @param timeStamp - Time ecg voltage was recorded
+     * @param ecgData - ECG voltage in uv
+     */
     public void receiveECGUpdate(long timeStamp, int ecgData) {
-        display.updateECGSeries(timeStamp, ecgData);
+        // Only update display if one present (e.g. activity with graph active)
+        if (display != null) {
+            display.updateECGSeries(timeStamp, ecgData);
+        }
     }
 
+    /**
+     * DataDisplay getter
+     * @return MonitorService's DataDisplay instance
+     */
     public DataDisplay getDataDisplay() {
         return display;
+    }
+
+    public boolean isRecordingHR() {
+        return hrRecorder == null;
     }
 
     /**

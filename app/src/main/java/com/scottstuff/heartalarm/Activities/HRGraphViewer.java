@@ -1,14 +1,16 @@
 package com.scottstuff.heartalarm.Activities;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.widget.TextView;
+import android.widget.Button;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
@@ -23,6 +25,7 @@ import java.text.SimpleDateFormat;
 public class HRGraphViewer
         extends AppCompatActivity
         implements MonitorService.UpdateFromService {
+    // Logcat tag
     private static final String TAG = App.APP_TAG + ".HRGraphViewer";
 
     // MonitorService instance to bind to, if present; else null
@@ -40,12 +43,18 @@ public class HRGraphViewer
 
             // Bind series for HR graph
             hrGraphSeries();
+
+            ToggleButton recording = findViewById(R.id.hrToggleButton);
+            recording.setChecked(serviceInstance.isRecordingHR());
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             // Remove server instance
             serviceInstance = null;
+
+            ToggleButton recording = findViewById(R.id.hrToggleButton);
+            recording.setChecked(false);
         }
     };
 
@@ -78,7 +87,36 @@ public class HRGraphViewer
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hrgraph_viewer);
+
+        // Set up hrGraph
         hrGraphSetup();
+
+        // Set up source button AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select a graph source:");
+        String[] options = {"Live View", "Saved Recording"};
+        builder.setItems(options, (dialog, choice) -> {
+            switch(choice) {
+                case 0:
+                    if (serviceInstance != null) {
+                        Toast.makeText(this,
+                                "Displaying live view!",
+                                Toast.LENGTH_LONG)
+                                .show();
+                    } else {
+                        Toast.makeText(this,
+                                "The service must be running to see live view!",
+                                Toast.LENGTH_LONG)
+                                .show();
+                    }
+                    break;
+                case 1:
+                    Toast.makeText(this, "Saved stuff!", Toast.LENGTH_LONG).show();
+                    break;
+            }
+        });
+        Button sourceButton = findViewById(R.id.hrSourceSelect);
+        sourceButton.setOnClickListener((view) -> builder.create().show());
     }
 
     /**
@@ -105,9 +143,12 @@ public class HRGraphViewer
         unbind();
     }
 
+    // Button stuff
+
+
     // Interface implementation
     /**
-     * Won't be called, just used to give HRGraphViewer compabitility w/MonitorService
+     * Won't be called, just used to give HRGraphViewer compatibility w/MonitorService
      * @param dataBundle
      */
     @Override

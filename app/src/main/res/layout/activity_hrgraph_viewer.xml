@@ -35,7 +35,7 @@
             android:orientation="horizontal">
 
             <ToggleButton
-                android:id="@+id/toggleButton"
+                android:id="@+id/hrToggleButton"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginEnd="8dp"
@@ -44,14 +44,14 @@
                 android:textOn="@string/recording" />
 
             <SeekBar
-                android:id="@+id/seekBar2"
+                android:id="@+id/hrSeekBar"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1" />
 
             <Button
-                android:id="@+id/button3"
+                android:id="@+id/hrSourceSelect"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
