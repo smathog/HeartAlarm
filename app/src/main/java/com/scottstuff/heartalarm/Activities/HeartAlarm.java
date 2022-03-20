@@ -41,6 +41,7 @@ public class HeartAlarm
     private final ServiceConnection monitorConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG, "onServiceConnected()");
             MonitorService.LocalBinder binder = (MonitorService.LocalBinder) service;
             serviceInstance = binder.getService();
 
@@ -56,6 +57,7 @@ public class HeartAlarm
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "onServiceDisconnected()");
             // Remove server instance
             serviceInstance = null;
 
@@ -70,6 +72,7 @@ public class HeartAlarm
     // Update implementation
     @Override
     public void serviceUpdate(MonitorService.DataBundle dataBundle) {
+        Log.d(TAG, "serviceUpdate()");
         // Set text for alarm
         TextView alarmText = findViewById(R.id.mainAlarmStatus);
         if (dataBundle.alarmActive) {
@@ -108,6 +111,7 @@ public class HeartAlarm
      */
     @Override
     protected void onResume() {
+        Log.d(TAG, "onResume()");
         super.onResume();
 
         // Bind MonitorService, if active
@@ -116,12 +120,14 @@ public class HeartAlarm
 
     @Override
     protected void onPause() {
+        Log.d(TAG, "onPause()");
         super.onPause();
         unbind();
     }
 
     @Override
     protected void onStop() {
+        Log.d(TAG, "onStop()");
         super.onStop();
         unbind();
     }
@@ -245,6 +251,7 @@ public class HeartAlarm
      * Helper function to bind the MonitorService
      */
     private void bind() {
+        Log.d(TAG, "bind()");
         Intent serviceIntent = new Intent(this, MonitorService.class);
         bindService(serviceIntent, monitorConnection, 0);
     }
@@ -254,6 +261,7 @@ public class HeartAlarm
      * Helper function to unbind the MonitorService
      */
     private void unbind() {
+        Log.d(TAG, "unbind()");
         // De-register activity with service
         if (serviceInstance != null) {
             serviceInstance.deregisterActivity();
@@ -273,9 +281,10 @@ public class HeartAlarm
     }
 
     /**
-     * Helper function to initialize HR graph with series into a readable format
+     * Helper function to initialize HR graph into a readable format
      */
     private void hrGraphSetup() {
+        Log.d(TAG, "hrGraphSetup()");
         GraphView graph = findViewById(R.id.entryHeartRateGraph);
         graph.setTitle("Heart Rate");
         // set date label formatter
@@ -289,6 +298,7 @@ public class HeartAlarm
      * Helper function to bind and configure the HR series
      */
     private void hrGraphSeries() {
+        Log.d(TAG, "hrGraphSeries()");
         GraphView graph = findViewById(R.id.entryHeartRateGraph);
         LineGraphSeries<DataPoint> series = serviceInstance.getDataDisplay().getHeartRateSeries();
         graph.addSeries(series);
@@ -307,6 +317,7 @@ public class HeartAlarm
      * Helper function to build ECG graph
      */
     private void ecgGraphSetup() {
+        Log.d(TAG, "ecgGraphSetup()");
         GraphView graph = findViewById(R.id.entryECGGraph);
         graph.setTitle("ECG");
         // Style grid
@@ -325,6 +336,7 @@ public class HeartAlarm
      * Helper function to set up graph once DataDisplay is ready
      */
     private void ecgGraphSeries() {
+        Log.d(TAG, "ecgGraphSeries()");
         GraphView graph = findViewById(R.id.entryECGGraph);
 
         LineGraphSeries<DataPoint> series = serviceInstance.getDataDisplay().getEcgSeries();

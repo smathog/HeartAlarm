@@ -181,6 +181,7 @@ public class AlarmManager {
     }
 
     public void shutDown() {
+        Log.d(TAG, "shutDown()");
         if (upperAlarmPlaying) {
             sp.stop(highStreamID);
         }

@@ -182,6 +182,7 @@ public class MonitorService extends Service {
 
     @Override
     public void onDestroy() {
+        Log.d(TAG, "onDestroy()");
         super.onDestroy();
         ecgDataSource.shutdownECGDataSource();
         hrDataSource.shutdownHRDataSource();
@@ -204,11 +205,13 @@ public class MonitorService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+        Log.d(TAG, "onBind()");
         return binder;
     }
 
     public class LocalBinder extends Binder {
         public MonitorService getService() {
+            Log.d(TAG, "getService()");
             // Returns instance of MonitorService
             return MonitorService.this;
         }
@@ -221,6 +224,7 @@ public class MonitorService extends Service {
      * @param activity to be registered
      */
     public void registerActivity(UpdateFromService activity) {
+        Log.d(TAG, "registerActivity()");
         boundActivity = activity;
 
         // Set up data display
@@ -233,6 +237,7 @@ public class MonitorService extends Service {
      * De-registers the activity bound to this service.
      */
     public void deregisterActivity() {
+        Log.d(TAG, "deregisterActivity()");
         String boundClass = boundActivity.getClass().toString();
         boundActivity = null;
 
@@ -266,6 +271,7 @@ public class MonitorService extends Service {
      * @param intent to use
      */
     public void updateFromIntent(Intent intent) {
+        Log.d(TAG, "updateFromIntent()");
         boolean lhrOn = intent.getBooleanExtra(App.LHR_ENABLED, false);
         boolean hhrOn = intent.getBooleanExtra(App.HHR_ENABLED, false);
         boolean alarmActive = intent.getBooleanExtra(App.ALARM_ON, false);
@@ -307,6 +313,7 @@ public class MonitorService extends Service {
      * @param hr - Relevant update data
      */
     public void receiveHRUpdate(int hr) {
+        Log.d(TAG, "receiveHRUpdate()");
         // Only update display if one present (e.g. activity with graph active)
         if (display != null) {
             display.updateHeartRateSeries(hr);
@@ -319,6 +326,7 @@ public class MonitorService extends Service {
      * @param ecgData - ECG voltage in uv
      */
     public void receiveECGUpdate(long timeStamp, int ecgData) {
+        Log.d(TAG, "receiveECGUpdate()");
         // Only update display if one present (e.g. activity with graph active)
         if (display != null) {
             display.updateECGSeries(timeStamp, ecgData);
@@ -330,10 +338,12 @@ public class MonitorService extends Service {
      * @return MonitorService's DataDisplay instance
      */
     public DataDisplay getDataDisplay() {
+        Log.d(TAG, "getDataDisplay()");
         return display;
     }
 
     public boolean isRecordingHR() {
+        Log.d(TAG, "isRecordingHR()");
         return hrRecorder == null;
     }
 
@@ -345,6 +355,7 @@ public class MonitorService extends Service {
      * @param heartRate containing heart rate, if available, otherwise empty.
      */
     public void update(String notificationText, Integer heartRate) {
+        Log.d(TAG, "update()");
         if (notificationText != null) {
             updateNotification(notificationText);
         }
@@ -362,6 +373,7 @@ public class MonitorService extends Service {
      * @param heartRate containing heart rate if available
      */
     private void updateWithTitle(String titleText, Integer heartRate) {
+        Log.d(TAG, "updateWithTitle()");
         if (titleText != null) {
             updateNotificationTitle(titleText);
         }

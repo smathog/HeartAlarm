@@ -1,9 +1,11 @@
 package com.scottstuff.heartalarm.DataDisplay;
 
 import android.app.Activity;
+import android.util.Log;
 
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.scottstuff.heartalarm.App.App;
 import com.scottstuff.heartalarm.Service.MonitorService;
 
 import java.util.Date;
@@ -12,6 +14,8 @@ import java.util.Date;
  * Class to manage data to be displayed by HeartAlarm activity
  */
 public class DataDisplay {
+    private static final String TAG = App.APP_TAG + ".DataDisplay";
+
     // Series for graphs
     private final LineGraphSeries<DataPoint> heartRateSeries;
     private final LineGraphSeries<DataPoint> ecgSeries;
@@ -23,6 +27,7 @@ public class DataDisplay {
      * Default constructor
      */
     public DataDisplay() {
+        Log.d(TAG, "DataDisplay()");
         // Initialize graph series
         heartRateSeries = new LineGraphSeries<>();
         ecgSeries = new LineGraphSeries<>();
@@ -33,6 +38,7 @@ public class DataDisplay {
      * @param activity
      */
     public void bindActivity(Activity activity) {
+        Log.d(TAG, "bindActivity()");
         this.activity = activity;
     }
 
@@ -41,6 +47,7 @@ public class DataDisplay {
      * @param hr - new datapoint
      */
     public void updateHeartRateSeries(int hr) {
+        Log.d(TAG, "updateHeartRateSeries()");
         // If bound to an activity, use UI thread to avoid concurrentModificationException
         if (activity != null) {
             activity.runOnUiThread(() -> heartRateSeries.appendData(new DataPoint(new Date(), hr),
@@ -57,6 +64,7 @@ public class DataDisplay {
      * @param ecgData - new datapoint
      */
     public void updateECGSeries(long timeStamp, int ecgData) {
+        Log.d(TAG, "updateECGSeries()");
         // If bound to an activity, use UI thread to avoid concurrentModificationException
         if (activity != null) {
             activity.runOnUiThread(() -> ecgSeries.appendData(new DataPoint(timeStamp, ecgData),
@@ -74,6 +82,7 @@ public class DataDisplay {
      * @return heartRateSeries
      */
     public LineGraphSeries<DataPoint> getHeartRateSeries() {
+        Log.d(TAG, "getHeartRateSeries()");
         return heartRateSeries;
     }
 
@@ -82,6 +91,7 @@ public class DataDisplay {
      * @return ecgSeries
      */
     public LineGraphSeries<DataPoint> getEcgSeries() {
+        Log.d(TAG, "getEcgSeries()");
         return ecgSeries;
     }
 }

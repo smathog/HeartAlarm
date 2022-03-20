@@ -201,21 +201,25 @@ public class StandardPolarDataSource
 
     @Override
     public void yieldECGSample(long timeStamp, int ecgData) {
+        Log.d(TAG, "yieldECGSample()");
         service.receiveECGUpdate(timeStamp, ecgData);
     }
 
     @Override
     public void shutdownECGDataSource() {
+        Log.d(TAG, "shutDownECGDataSource()");
         shutdownHRDataSource();
     }
 
     @Override
     public void yieldHRSample(int hr) {
+        Log.d(TAG, "yieldHRSample()");
         service.receiveHRUpdate(hr);
     }
 
     @Override
     public void shutdownHRDataSource() {
+        Log.d(TAG, "shutdownHRDataSource()");
         api.shutDown();
     }
 }

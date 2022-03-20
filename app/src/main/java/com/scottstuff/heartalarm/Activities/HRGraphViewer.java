@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -35,6 +36,7 @@ public class HRGraphViewer
     private final ServiceConnection monitorConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.d(TAG, "onServiceConnected()");
             MonitorService.LocalBinder binder = (MonitorService.LocalBinder) service;
             serviceInstance = binder.getService();
 
@@ -50,6 +52,7 @@ public class HRGraphViewer
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "onServiceDisconnected()");
             // Remove server instance
             serviceInstance = null;
 
@@ -63,6 +66,7 @@ public class HRGraphViewer
      * Helper function to bind the MonitorService
      */
     private void bind() {
+        Log.d(TAG, "bind()");
         Intent serviceIntent = new Intent(this, MonitorService.class);
         bindService(serviceIntent, monitorConnection, 0);
     }
@@ -71,6 +75,7 @@ public class HRGraphViewer
      * Helper function to unbind the MonitorService
      */
     private void unbind() {
+        Log.d(TAG, "unbind()");
         // De-register activity with service
         if (serviceInstance != null) {
             serviceInstance.deregisterActivity();
@@ -85,6 +90,7 @@ public class HRGraphViewer
     // Android lifecycle functions
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate()");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_hrgraph_viewer);
 
@@ -125,6 +131,7 @@ public class HRGraphViewer
      */
     @Override
     protected void onResume() {
+        Log.d(TAG, "onResume()");
         super.onResume();
 
         // Bind MonitorService, if active
@@ -133,18 +140,17 @@ public class HRGraphViewer
 
     @Override
     protected void onPause() {
+        Log.d(TAG, "onPause()");
         super.onPause();
         unbind();
     }
 
     @Override
     protected void onStop() {
+        Log.d(TAG, "onStop()");
         super.onStop();
         unbind();
     }
-
-    // Button stuff
-
 
     // Interface implementation
     /**
@@ -161,6 +167,7 @@ public class HRGraphViewer
      * Helper function to initialize HR graph with series into a readable format
      */
     private void hrGraphSetup() {
+        Log.d(TAG, "hrGraphSetup()");
         GraphView graph = findViewById(R.id.bigHeartRateGraph);
         graph.setTitle("Heart Rate");
         // set date label formatter
@@ -174,6 +181,7 @@ public class HRGraphViewer
      * Helper function to bind and configure the HR series
      */
     private void hrGraphSeries() {
+        Log.d(TAG, "hrGraphSeries()");
         GraphView graph = findViewById(R.id.bigHeartRateGraph);
         LineGraphSeries<DataPoint> series = serviceInstance.getDataDisplay().getHeartRateSeries();
         graph.addSeries(series);
