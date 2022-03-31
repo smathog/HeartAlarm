@@ -19,6 +19,7 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.scottstuff.heartalarm.App.App;
 import com.scottstuff.heartalarm.R;
+import com.scottstuff.heartalarm.SQL.HrSQLiteManager;
 import com.scottstuff.heartalarm.Service.MonitorService;
 
 import java.text.SimpleDateFormat;
@@ -98,6 +99,17 @@ public class HRGraphViewer
         hrGraphSetup();
 
         // Set up source button AlertDialog
+        // Inner AlertDialog
+        AlertDialog.Builder innerBuilder = new AlertDialog.Builder(this);
+        innerBuilder.setTitle("Recordings:");
+        String[] innerOptions = HrSQLiteManager.getInstance(this).getTables().toArray(new String[0]);
+        if (innerOptions.length == 0) {
+            innerBuilder.setMessage("No recordings available!");
+        } else {
+            innerBuilder.setItems(innerOptions, (dialog, choice) -> {});
+        }
+
+        // Outer AlertDialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Select a graph source:");
         String[] options = {"Live View", "Saved Recording"};
@@ -118,6 +130,7 @@ public class HRGraphViewer
                     break;
                 case 1:
                     Toast.makeText(this, "Saved stuff!", Toast.LENGTH_LONG).show();
+                    innerBuilder.create().show();
                     break;
             }
         });

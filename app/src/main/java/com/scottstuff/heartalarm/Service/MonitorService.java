@@ -16,12 +16,9 @@ import android.os.IBinder;
 import android.util.Log;
 
 // Imports for Polar API Stuff
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
 // Graph imports
-import com.jjoe64.graphview.series.DataPoint;
-import com.jjoe64.graphview.series.LineGraphSeries;
 import com.scottstuff.heartalarm.Activities.AlarmSettings;
 import com.scottstuff.heartalarm.Activities.HeartAlarm;
 import com.scottstuff.heartalarm.Alarm.AlarmManager;
@@ -31,26 +28,7 @@ import com.scottstuff.heartalarm.DataSource.ECGDataSource;
 import com.scottstuff.heartalarm.DataSource.HRDataSource;
 import com.scottstuff.heartalarm.DataSource.StandardPolarDataSource;
 import com.scottstuff.heartalarm.R;
-import com.scottstuff.heartalarm.SQL.hrSQLRecorder;
-
-import org.reactivestreams.Publisher;
-
-import java.util.Date;
-import java.util.Optional;
-import java.util.OptionalLong;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
-
-import io.reactivex.rxjava3.functions.Function;
-import polar.com.sdk.api.PolarBleApi;
-import polar.com.sdk.api.PolarBleApiCallback;
-import polar.com.sdk.api.PolarBleApiDefaultImpl;
-import polar.com.sdk.api.errors.PolarInvalidArgument;
-import polar.com.sdk.api.model.PolarDeviceInfo;
-import polar.com.sdk.api.model.PolarEcgData;
-import polar.com.sdk.api.model.PolarHrData;
-import polar.com.sdk.api.model.PolarSensorSetting;
+import com.scottstuff.heartalarm.SQL.HrSQLiteRecorder;
 
 
 public class MonitorService extends Service {
@@ -94,7 +72,7 @@ public class MonitorService extends Service {
     private DataDisplay display;
 
     // HR recorder
-    private hrSQLRecorder hrRecorder;
+    private HrSQLiteRecorder hrRecorder;
 
     // Android boilerplate management
     @Override
