@@ -6,6 +6,8 @@ import androidx.annotation.NonNull;
 
 import com.jjoe64.graphview.series.DataPoint;
 import com.scottstuff.heartalarm.App.App;
+import com.scottstuff.heartalarm.DataTypes.ECGData;
+import com.scottstuff.heartalarm.DataTypes.HRData;
 import com.scottstuff.heartalarm.Service.MonitorService;
 
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +16,7 @@ import org.reactivestreams.Publisher;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import io.reactivex.rxjava3.functions.Function;
 import polar.com.sdk.api.PolarBleApi;
@@ -38,6 +41,12 @@ public class StandardPolarDataSource
     @NotNull
     MonitorService service;
 
+    @NotNull
+    Consumer<ECGData> ecgDataConsumer;
+
+    @NotNull
+    Consumer<HRData> hrDataConsumer;
+
     //Polar API reference
     @NotNull
     private PolarBleApi api;
@@ -49,7 +58,11 @@ public class StandardPolarDataSource
     private final static String TAG = App.APP_TAG + ".StandardPolarDataSource";
 
     public StandardPolarDataSource(@NonNull MonitorService service) {
+        // Set instance variables
         this.service = service;
+        ecgDataConsumer = this.service::receiveECGUpdate;
+        hrDataConsumer = this.service::receiveHRUpdate;
+
 
         //Polar API Stuff
         api = PolarBleApiDefaultImpl.defaultImplementation(service.getApplicationContext(),
@@ -118,7 +131,8 @@ public class StandardPolarDataSource
                                         Log.d(TAG, "startstoptime: " + " stop " + sampleTime);
                                         timeStamp = TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS);
                                     }
-                                    yieldECGSample(sampleTime, polarEcgData.samples.get(i));
+                                    ecgDataConsumer.accept(new ECGData(sampleTime,
+                                            polarEcgData.samples.get(i)));
                                 }
                             } else {
                                 timeStamp = TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS);
@@ -182,7 +196,7 @@ public class StandardPolarDataSource
             public void hrNotificationReceived(String identifier, PolarHrData data) {
                 Log.d(TAG,"HR value: " + data.hr + " rrsMs: " + data.rrsMs + " rr: " + data.rrs + " contact: " + data.contactStatus + "," + data.contactStatusSupported);
                 String text = "HR: " + data.hr + " RR: " + data.rrsMs;
-                yieldHRSample(data.hr);
+                hrDataConsumer.accept(new HRData(new Date().getTime(), data.hr));
                 service.update(text, data.hr);
             }
 
@@ -200,9 +214,9 @@ public class StandardPolarDataSource
     }
 
     @Override
-    public void yieldECGSample(long timeStamp, int ecgData) {
-        Log.d(TAG, "yieldECGSample()");
-        service.receiveECGUpdate(timeStamp, ecgData);
+    public void setEcgDataConsumer(Consumer<ECGData> ecgDataConsumer) {
+        Log.d(TAG, "setECGDataConsumer()");
+        this.ecgDataConsumer = ecgDataConsumer;
     }
 
     @Override
@@ -212,9 +226,9 @@ public class StandardPolarDataSource
     }
 
     @Override
-    public void yieldHRSample(int hr) {
-        Log.d(TAG, "yieldHRSample()");
-        service.receiveHRUpdate(hr);
+    public void setHrDataConsumer(Consumer<HRData> hrDataConsumer) {
+        Log.d(TAG, "setHrDataConsumer()");
+        this.hrDataConsumer = hrDataConsumer;
     }
 
     @Override

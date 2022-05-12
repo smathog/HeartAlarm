@@ -18,6 +18,7 @@ import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.jjoe64.graphview.series.PointsGraphSeries;
 import com.scottstuff.heartalarm.App.App;
 import com.scottstuff.heartalarm.Service.MonitorService;
 import com.scottstuff.heartalarm.R;
@@ -339,10 +340,11 @@ public class HeartAlarm
         Log.d(TAG, "ecgGraphSeries()");
         GraphView graph = findViewById(R.id.entryECGGraph);
 
-        LineGraphSeries<DataPoint> series = serviceInstance.getDataDisplay().getEcgSeries();
+        PointsGraphSeries<DataPoint> series = serviceInstance.getDataDisplay().getEcgSeries();
 
         // Style series
         series.setColor(Color.BLACK);
+        series.setSize(3f);
         graph.addSeries(series);
 
         // Viewport settings

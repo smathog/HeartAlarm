@@ -27,6 +27,8 @@ import com.scottstuff.heartalarm.DataDisplay.DataDisplay;
 import com.scottstuff.heartalarm.DataSource.ECGDataSource;
 import com.scottstuff.heartalarm.DataSource.HRDataSource;
 import com.scottstuff.heartalarm.DataSource.StandardPolarDataSource;
+import com.scottstuff.heartalarm.DataTypes.ECGData;
+import com.scottstuff.heartalarm.DataTypes.HRData;
 import com.scottstuff.heartalarm.R;
 import com.scottstuff.heartalarm.SQL.HrSQLiteRecorder;
 
@@ -288,26 +290,25 @@ public class MonitorService extends Service {
 
     /**
      * Update the service with a new HR datapoint
-     * @param hr - Relevant update data
+     * @param hrData - Relevant update data
      */
-    public void receiveHRUpdate(int hr) {
+    public void receiveHRUpdate(HRData hrData) {
         Log.d(TAG, "receiveHRUpdate()");
         // Only update display if one present (e.g. activity with graph active)
         if (display != null) {
-            display.updateHeartRateSeries(hr);
+            display.updateHeartRateSeries(hrData);
         }
     }
 
     /**
      * Update the service with a new ECG datapoint
-     * @param timeStamp - Time ecg voltage was recorded
-     * @param ecgData - ECG voltage in uv
+     * @param ecgData - ECG time series datapoint
      */
-    public void receiveECGUpdate(long timeStamp, int ecgData) {
+    public void receiveECGUpdate(ECGData ecgData) {
         Log.d(TAG, "receiveECGUpdate()");
         // Only update display if one present (e.g. activity with graph active)
         if (display != null) {
-            display.updateECGSeries(timeStamp, ecgData);
+            display.updateECGSeries(ecgData);
         }
     }
 

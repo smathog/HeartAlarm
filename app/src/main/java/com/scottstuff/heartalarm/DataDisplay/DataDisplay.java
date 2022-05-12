@@ -5,7 +5,10 @@ import android.util.Log;
 
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+import com.jjoe64.graphview.series.PointsGraphSeries;
 import com.scottstuff.heartalarm.App.App;
+import com.scottstuff.heartalarm.DataTypes.ECGData;
+import com.scottstuff.heartalarm.DataTypes.HRData;
 import com.scottstuff.heartalarm.Service.MonitorService;
 
 import java.util.Date;
@@ -18,7 +21,7 @@ public class DataDisplay {
 
     // Series for graphs
     private final LineGraphSeries<DataPoint> heartRateSeries;
-    private final LineGraphSeries<DataPoint> ecgSeries;
+    private final PointsGraphSeries<DataPoint> ecgSeries;
 
     // Link to the activity consuming the data
     private Activity activity;
@@ -30,7 +33,7 @@ public class DataDisplay {
         Log.d(TAG, "DataDisplay()");
         // Initialize graph series
         heartRateSeries = new LineGraphSeries<>();
-        ecgSeries = new LineGraphSeries<>();
+        ecgSeries = new PointsGraphSeries<>();
     }
 
     /**
@@ -44,34 +47,35 @@ public class DataDisplay {
 
     /**
      * Updates the LineGraphSeries for heart rate
-     * @param hr - new datapoint
+     * @param hrData - new datapoint
      */
-    public void updateHeartRateSeries(int hr) {
+    public void updateHeartRateSeries(HRData hrData) {
         Log.d(TAG, "updateHeartRateSeries()");
         // If bound to an activity, use UI thread to avoid concurrentModificationException
         if (activity != null) {
-            activity.runOnUiThread(() -> heartRateSeries.appendData(new DataPoint(new Date(), hr),
+            activity.runOnUiThread(() -> heartRateSeries.appendData(new DataPoint(hrData.getTimeStamp(),
+                            hrData.getBpm()),
                     true, Integer.MAX_VALUE, false));
         } else { // If not, can just use the current thread and not bother rerendering
-            heartRateSeries.appendData(new DataPoint(new Date(), hr),
+            heartRateSeries.appendData(new DataPoint(hrData.getTimeStamp(), hrData.getBpm()),
                     true, Integer.MAX_VALUE, true);
         }
     }
 
     /**
      * Updates the LineGraphSeries for ECG data
-     * @param timeStamp - timestamp for datapoint
      * @param ecgData - new datapoint
      */
-    public void updateECGSeries(long timeStamp, int ecgData) {
-        Log.d(TAG, "updateECGSeries()");
+    public void updateECGSeries(ECGData ecgData) {
+        Log.d(TAG, "updateECGSeries() " + ecgData);
         // If bound to an activity, use UI thread to avoid concurrentModificationException
         if (activity != null) {
-            activity.runOnUiThread(() -> ecgSeries.appendData(new DataPoint(timeStamp, ecgData),
+            activity.runOnUiThread(() -> ecgSeries.appendData(new DataPoint(ecgData.getTimeStamp(),
+                            ecgData.getVoltage()),
                     true, Integer.MAX_VALUE, false)
             );
         } else { // If not, can just use the current thread and not bother rerendering
-            ecgSeries.appendData(new DataPoint(timeStamp, ecgData),
+            ecgSeries.appendData(new DataPoint(ecgData.getTimeStamp(), ecgData.getVoltage()),
                     true, Integer.MAX_VALUE, true);
         }
     }
@@ -90,7 +94,7 @@ public class DataDisplay {
      * Getter for the ECG data series
      * @return ecgSeries
      */
-    public LineGraphSeries<DataPoint> getEcgSeries() {
+    public PointsGraphSeries<DataPoint> getEcgSeries() {
         Log.d(TAG, "getEcgSeries()");
         return ecgSeries;
     }
