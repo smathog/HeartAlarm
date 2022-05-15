@@ -51,7 +51,7 @@ public class StandardPolarDataSource
     @NotNull
     private PolarBleApi api;
 
-    // Used to record the previous sample's timestamp:
+    // Used to record the previous sample's timestamp (nanoseconds):
     private Long timeStamp;
 
     //String for logcat tag
@@ -117,25 +117,28 @@ public class StandardPolarDataSource
                         polarEcgData -> {
                             // Must be a previous timestamp to execute
                             if (timeStamp != null && !polarEcgData.samples.isEmpty()) {
-                                long timeDiff = (TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS)
-                                        - timeStamp);
-                                Log.d(TAG, "     timeDiff: " + timeDiff);
+                                long timeDiff = polarEcgData.timeStamp - timeStamp;
+                                Log.d(TAG, "     timeDiff (ns): " + timeDiff);
+                                Log.d(TAG, "     # samples: " + polarEcgData.samples.size());
                                 long deltaT = timeDiff / polarEcgData.samples.size();
                                 long sampleTime = timeStamp;
                                 for (int i = 0; i < polarEcgData.samples.size(); ++i) {
                                     sampleTime += deltaT;
-                                    Log.d(TAG, "    yV: " + polarEcgData.samples.get(i) + "   time: " + sampleTime);
+                                    Log.d(TAG, "    yV: " + polarEcgData.samples.get(i) + "   time (ns): " + sampleTime);
                                     if (i == 0) {
                                         Log.d(TAG, "startstoptime: " + " start " + sampleTime);
                                     } else if ( i == polarEcgData.samples.size() - 1) {
                                         Log.d(TAG, "startstoptime: " + " stop " + sampleTime);
-                                        timeStamp = TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS);
+                                        timeStamp = polarEcgData.timeStamp;
+                                        Log.d(TAG, "time-gap: " + (timeStamp - sampleTime) + " deltaT: " + deltaT);
                                     }
-                                    ecgDataConsumer.accept(new ECGData(sampleTime,
+                                    ecgDataConsumer.accept(new ECGData
+                                            (TimeUnit.MILLISECONDS.convert
+                                                    (sampleTime, TimeUnit.NANOSECONDS),
                                             polarEcgData.samples.get(i)));
                                 }
                             } else {
-                                timeStamp = TimeUnit.MILLISECONDS.convert(polarEcgData.timeStamp, TimeUnit.NANOSECONDS);
+                                timeStamp = polarEcgData.timeStamp;
                             }
                         },
                         throwable -> Log.e(TAG, "" + throwable.toString()),

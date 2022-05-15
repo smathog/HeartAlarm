@@ -21,7 +21,7 @@ public class DataDisplay {
 
     // Series for graphs
     private final LineGraphSeries<DataPoint> heartRateSeries;
-    private final PointsGraphSeries<DataPoint> ecgSeries;
+    private final LineGraphSeries<DataPoint> ecgSeries;
 
     // Link to the activity consuming the data
     private Activity activity;
@@ -33,7 +33,7 @@ public class DataDisplay {
         Log.d(TAG, "DataDisplay()");
         // Initialize graph series
         heartRateSeries = new LineGraphSeries<>();
-        ecgSeries = new PointsGraphSeries<>();
+        ecgSeries = new LineGraphSeries<>();
     }
 
     /**
@@ -94,7 +94,7 @@ public class DataDisplay {
      * Getter for the ECG data series
      * @return ecgSeries
      */
-    public PointsGraphSeries<DataPoint> getEcgSeries() {
+    public LineGraphSeries<DataPoint> getEcgSeries() {
         Log.d(TAG, "getEcgSeries()");
         return ecgSeries;
     }

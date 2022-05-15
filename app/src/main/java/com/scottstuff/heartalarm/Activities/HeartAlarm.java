@@ -340,11 +340,10 @@ public class HeartAlarm
         Log.d(TAG, "ecgGraphSeries()");
         GraphView graph = findViewById(R.id.entryECGGraph);
 
-        PointsGraphSeries<DataPoint> series = serviceInstance.getDataDisplay().getEcgSeries();
+        LineGraphSeries<DataPoint> series = serviceInstance.getDataDisplay().getEcgSeries();
 
         // Style series
         series.setColor(Color.BLACK);
-        series.setSize(3f);
         graph.addSeries(series);
 
         // Viewport settings
