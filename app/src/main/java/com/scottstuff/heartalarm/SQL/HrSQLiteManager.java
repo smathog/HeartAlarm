@@ -4,10 +4,14 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.scottstuff.heartalarm.DataTypes.HRData;
+
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -44,6 +48,25 @@ public class HrSQLiteManager extends SQLiteOpenHelper {
             if (cursor.moveToFirst()) {
                 while (!cursor.isAfterLast()) {
                     list.add(cursor.getString(0));
+                    cursor.moveToNext();
+                }
+            }
+            // Sort list in descending order
+            list.sort(Comparator.reverseOrder());
+            return list;
+        }
+    }
+
+    public List<HRData> getData(String tableName) {
+        String query = String.format("SELECT * FROM %s", tableName);
+        try (Cursor cursor = instance.getReadableDatabase()
+                .rawQuery(query, null)) {
+            ArrayList<HRData> list = new ArrayList<>();
+            if (cursor.moveToFirst()) {
+                while (!cursor.isAfterLast()) {
+                    long timestamp = cursor.getLong(cursor.getColumnIndex(HrSQLiteRecorder.getTimeField()));
+                    int dataValue = cursor.getInt(cursor.getColumnIndex(HrSQLiteRecorder.getHrField()));
+                    list.add(new HRData(timestamp, dataValue));
                     cursor.moveToNext();
                 }
             }

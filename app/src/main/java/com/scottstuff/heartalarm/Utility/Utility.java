@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
 import android.util.Log;
 
+import com.jjoe64.graphview.series.LineGraphSeries;
 import com.scottstuff.heartalarm.App.App;
 
 public class Utility {

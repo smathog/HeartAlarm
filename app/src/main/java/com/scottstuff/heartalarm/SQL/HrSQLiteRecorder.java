@@ -3,6 +3,7 @@ package com.scottstuff.heartalarm.SQL;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.scottstuff.heartalarm.DataTypes.HRData;
 
@@ -74,18 +75,19 @@ public class HrSQLiteRecorder {
     public void insertRecording(HRData dataPoint) {
         queue.add(dataPoint);
         if ((insertion == null || insertion.isDone()) && queue.size() >= insertThreshold) {
-            insertion = executorService.submit(insertIntoTable());
+            insertion = executorService.submit(insertIntoTable(false));
         }
     }
 
     /**
      * Runnable task to handle inserting stored data into this recorder's table
+     * @param toEnd - if true, insert not to threshold but rather to end. Closes the db if true.
      */
-    private Runnable insertIntoTable() {
+    private Runnable insertIntoTable(boolean toEnd) {
         return () -> {
+            db.beginTransaction();
             try {
-                db.beginTransaction();
-                for (int i = 0; i < insertThreshold; ++i) {
+                for (int i = 0; i < (toEnd ? queue.size() : insertThreshold); ++i) {
                     HRData data = queue.take();
                     ContentValues cv = new ContentValues();
                     cv.put(TIME_FIELD, data.getTimeStamp());
@@ -97,14 +99,44 @@ public class HrSQLiteRecorder {
                 e.printStackTrace();
             } finally {
                 db.endTransaction();
+                if (toEnd) {
+                    db.close();
+                }
             }
         };
+    }
+
+    /**
+     * Helper function to forcefully insert all remaining elements in queue, expecting the db
+     * to close down.
+     */
+    private void insertImmediately() {
+        if (insertion == null || insertion.isDone()) {
+            insertion = executorService.submit(insertIntoTable(true));
+        }
     }
 
     /**
      * Terminate database connection
      */
     public void shutDown() {
-        db.close();
+        insertImmediately();
     }
+
+    /**
+     * Utility getter function
+     * @return the name of the time field column in the table
+     */
+    public static String getTimeField() {
+        return TIME_FIELD;
+    }
+
+    /**
+     * Utility getter function
+     * @return the name of the value field column in the table
+     */
+    public static String getHrField() {
+        return HR_FIELD;
+    }
+
 }

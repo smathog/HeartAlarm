@@ -12,6 +12,7 @@ import com.scottstuff.heartalarm.DataTypes.HRData;
 import com.scottstuff.heartalarm.Service.MonitorService;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * Class to manage data to be displayed by HeartAlarm activity
@@ -97,5 +98,19 @@ public class DataDisplay {
     public LineGraphSeries<DataPoint> getEcgSeries() {
         Log.d(TAG, "getEcgSeries()");
         return ecgSeries;
+    }
+
+    /**
+     * Utility function: taking a list of HRData, convert it to a LineGraphSeries for viewing
+     * @param series of HRData for conversion
+     * @return LineGraphSeries to be attached to a graph
+     */
+    public static LineGraphSeries<DataPoint> convertHRToGraphSeries(List<HRData> series) {
+        LineGraphSeries<DataPoint> outputSeries = new LineGraphSeries<>();
+        for (HRData data : series) {
+            outputSeries.appendData(new DataPoint(data.getTimeStamp(), data.getBpm()),
+                    false, Integer.MAX_VALUE, false);
+        }
+        return outputSeries;
     }
 }

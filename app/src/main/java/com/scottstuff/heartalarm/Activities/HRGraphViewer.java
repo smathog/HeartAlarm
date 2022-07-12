@@ -18,11 +18,14 @@ import com.jjoe64.graphview.helper.DateAsXAxisLabelFormatter;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.scottstuff.heartalarm.App.App;
+import com.scottstuff.heartalarm.DataDisplay.DataDisplay;
+import com.scottstuff.heartalarm.DataTypes.HRData;
 import com.scottstuff.heartalarm.R;
 import com.scottstuff.heartalarm.SQL.HrSQLiteManager;
 import com.scottstuff.heartalarm.Service.MonitorService;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 public class HRGraphViewer
         extends AppCompatActivity
@@ -45,7 +48,7 @@ public class HRGraphViewer
             serviceInstance.registerActivity(HRGraphViewer.this);
 
             // Bind series for HR graph
-            hrGraphSeries();
+            hrGraphSeries(serviceInstance.getDataDisplay().getHeartRateSeries());
 
             ToggleButton recording = findViewById(R.id.hrToggleButton);
             recording.setChecked(serviceInstance.isRecordingHR());
@@ -108,9 +111,11 @@ public class HRGraphViewer
         } else {
             innerBuilder.setItems(innerOptions, (dialog, choice) -> {
                 Toast.makeText(this,
-                                "You picked " + choice,
+                                "You picked " + innerOptions[choice],
                                 Toast.LENGTH_LONG)
                         .show();
+                List<HRData> list = HrSQLiteManager.getInstance(this).getData(innerOptions[choice]);
+                hrGraphSeries(DataDisplay.convertHRToGraphSeries(list));
             });
         }
 
@@ -126,6 +131,7 @@ public class HRGraphViewer
                                 "Displaying live view!",
                                 Toast.LENGTH_LONG)
                                 .show();
+                        hrGraphSeries(serviceInstance.getDataDisplay().getHeartRateSeries());
                     } else {
                         Toast.makeText(this,
                                 "The service must be running to see live view!",
@@ -226,13 +232,15 @@ public class HRGraphViewer
     }
 
     /**
-     * Helper function to bind and configure the HR series
+     * Helper function to bind and configure the HR series. Note this wipes the graph clean of the
+     * preexisting series.
+     * @param series - The series to bind to the graph.
      */
-    private void hrGraphSeries() {
+    private void hrGraphSeries(LineGraphSeries<DataPoint> series) {
         Log.d(TAG, "hrGraphSeries()");
         GraphView graph = findViewById(R.id.bigHeartRateGraph);
-        LineGraphSeries<DataPoint> series = serviceInstance.getDataDisplay().getHeartRateSeries();
-        graph.addSeries(series);
+        // Remove all preexisting series
+        graph.removeAllSeries();
 
         // Viewport configuration
         graph.getViewport().setXAxisBoundsManual(true);
@@ -242,5 +250,8 @@ public class HRGraphViewer
         graph.getViewport().setMinY(0);
         graph.getViewport().setMaxY(220);
         graph.getViewport().setScrollable(true);
+
+        // Add this series to the graph
+        graph.addSeries(series);
     }
 }
