@@ -106,7 +106,12 @@ public class HRGraphViewer
         if (innerOptions.length == 0) {
             innerBuilder.setMessage("No recordings available!");
         } else {
-            innerBuilder.setItems(innerOptions, (dialog, choice) -> {});
+            innerBuilder.setItems(innerOptions, (dialog, choice) -> {
+                Toast.makeText(this,
+                                "You picked " + choice,
+                                Toast.LENGTH_LONG)
+                        .show();
+            });
         }
 
         // Outer AlertDialog
@@ -136,6 +141,36 @@ public class HRGraphViewer
         });
         Button sourceButton = findViewById(R.id.hrSourceSelect);
         sourceButton.setOnClickListener((view) -> builder.create().show());
+
+        // Recording button logic
+        ToggleButton recording = findViewById(R.id.hrToggleButton);
+        recording.setOnClickListener((view) -> {
+            // Need the negation because clicking the button flips the value!
+            if (!recording.isChecked()) {
+                // Recording, so stop recording.
+                if (serviceInstance != null && serviceInstance.isRecordingHR()) {
+                    serviceInstance.stopRecordingHR();
+                } else {
+                    Toast.makeText(this,
+                                    "You weren't recording anyways!",
+                                    Toast.LENGTH_LONG)
+                            .show();
+                }
+                recording.setChecked(false);
+            } else {
+                // Not recording, so start recording
+                if (serviceInstance != null && !serviceInstance.isRecordingHR()) {
+                    serviceInstance.startRecordingHR();
+                    recording.setChecked(true);
+                } else if (serviceInstance == null) {
+                    Toast.makeText(this,
+                                    "You need to start the service to record!",
+                                    Toast.LENGTH_LONG)
+                            .show();
+                    recording.setChecked(false);
+                }
+            }
+        });
     }
 
     /**

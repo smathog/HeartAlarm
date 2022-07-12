@@ -14,6 +14,7 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 // Imports for Polar API Stuff
 import androidx.core.app.NotificationCompat;
@@ -298,6 +299,11 @@ public class MonitorService extends Service {
         if (display != null) {
             display.updateHeartRateSeries(hrData);
         }
+
+        // If currently recording, pass the datapoint to the recorder!
+        if (hrRecorder != null) {
+            hrRecorder.insertRecording(hrData);
+        }
     }
 
     /**
@@ -321,9 +327,41 @@ public class MonitorService extends Service {
         return display;
     }
 
+    // HR Recording Management
+
+    /**
+     * Order the MonitorService to start recording HR data
+     */
+    public void startRecordingHR() {
+        Log.d(TAG, "startRecordingHR");
+        if (hrRecorder == null) {
+            hrRecorder = new HrSQLiteRecorder(this, System.currentTimeMillis(), 100);
+        } else {
+            // Already recording!
+            Toast.makeText(this,
+                            "The service is already recording heart rate!",
+                            Toast.LENGTH_LONG)
+                    .show();
+        }
+    }
+
+    /**
+     * Close down the hrRecorder and stop recording.
+     */
+    public void stopRecordingHR() {
+        Log.d(TAG, "stopRecordingHR");
+        hrRecorder.shutDown();
+        hrRecorder = null;
+    }
+
+    /**
+     * Helper function to indicate whether or not this MonitorService is currently recording
+     * HR readings.
+     * @return whether the service is actively recording
+     */
     public boolean isRecordingHR() {
         Log.d(TAG, "isRecordingHR()");
-        return hrRecorder == null;
+        return hrRecorder != null;
     }
 
     /**

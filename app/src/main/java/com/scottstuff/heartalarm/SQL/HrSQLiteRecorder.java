@@ -37,9 +37,16 @@ public class HrSQLiteRecorder {
     private Future<?> insertion;
 
 
+    /**
+     * Create a new HrSQLiteRecorder, which will create and manage it's own table
+     * @param context
+     * @param firstTimestamp - Date the recorder will start, set as part of tablename
+     * @param insertThreshold - How many elements should be in queue before save transaction
+     *                        executes
+     */
     public HrSQLiteRecorder(Context context, Long firstTimestamp, int insertThreshold) {
         Date date = new Date(firstTimestamp);
-        DateFormat format = new SimpleDateFormat("yyyy.MM.dd:HH:mm:ss");
+        DateFormat format = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
         format.setTimeZone(TimeZone.getTimeZone("UTC"));
         this.TABLE_NAME = "HR" + format.format(date);
 
@@ -60,6 +67,10 @@ public class HrSQLiteRecorder {
         executorService = Executors.newSingleThreadExecutor();
     }
 
+    /**
+     * Store the passed data; insert along with previously stored data in queue if past threshold
+     * @param dataPoint to be inserted (eventually) into table
+     */
     public void insertRecording(HRData dataPoint) {
         queue.add(dataPoint);
         if ((insertion == null || insertion.isDone()) && queue.size() >= insertThreshold) {
@@ -67,6 +78,9 @@ public class HrSQLiteRecorder {
         }
     }
 
+    /**
+     * Runnable task to handle inserting stored data into this recorder's table
+     */
     private Runnable insertIntoTable() {
         return () -> {
             try {
@@ -85,5 +99,12 @@ public class HrSQLiteRecorder {
                 db.endTransaction();
             }
         };
+    }
+
+    /**
+     * Terminate database connection
+     */
+    public void shutDown() {
+        db.close();
     }
 }
