@@ -4,7 +4,7 @@ HeartAlarm is an Android app, written in Java, that can be used to monitor both 
 
 ## License Information
 
-For all code derived from the Polar SDK, the Polar license applies, and is included in this repo as required. Similarly, the license for GraphView applies to the code using that library. All other code is my own and falls under a standard MIT license. Additionally, the alarm sounds were derived from a BBC sound library and are not for commercial usage (nothing here is, actually...but best to be clear on that point).
+For all code used and/or derived from the Polar SDK, the Polar license and copyright applies, and is included in this repo as required. Similarly, the license for GraphView applies to the code using that library. All other code is my own and falls under a standard MIT license. Additionally, the alarm sounds were derived from a BBC sound library and are not for commercial usage (nothing here is, actually...but best to be clear on that point).
 
 ## Design
 
