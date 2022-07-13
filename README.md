@@ -2,6 +2,10 @@
 
 HeartAlarm is an Android app, written in Java, that can be used to monitor both heart rate and ECG. Currently based around the Polar H10 exercise monitor and the Polar SDK (GitHub repo [here](https://github.com/polarofficial/polar-ble-sdk)), it has been developed in such a manner to permit easy extension for compatability other ECG-capable devices. As it stands, the app currently features the ability to set audible alarms based upon high and low heart rate alarms with monitoring in the background via Android's foreground service feature, as well as the ability to record and display both heart rate and ECG through Android's builtin SQLite capabilities and the GraphView library (GitHub repo [here](https://github.com/jjoe64/GraphView)).
 
+## Disclaimer
+
+This app is not intended for any serious, real-world medical usage. Do not use it in this manner. Seriously, don't. It's a pet project, not a vetted medical tool or device. If you ignore this disclaimer and do so anyways, I am not liable or responsible in any way for your decision and any harm or injury that results. 
+
 ## License Information
 
 For all code used and/or derived from the Polar SDK, the Polar license and copyright applies, and is included in this repo as required. Similarly, the license for GraphView applies to the code using that library. All other code is my own and falls under a standard MIT license. Additionally, the alarm sounds were derived from a BBC sound library and are not for commercial usage (nothing here is, actually...but best to be clear on that point).
