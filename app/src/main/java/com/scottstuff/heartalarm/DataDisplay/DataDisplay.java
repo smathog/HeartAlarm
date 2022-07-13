@@ -6,6 +6,7 @@ import android.util.Log;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.jjoe64.graphview.series.PointsGraphSeries;
+import com.scottstuff.heartalarm.Activities.ECGGraphView;
 import com.scottstuff.heartalarm.App.App;
 import com.scottstuff.heartalarm.DataTypes.ECGData;
 import com.scottstuff.heartalarm.DataTypes.HRData;
@@ -109,6 +110,20 @@ public class DataDisplay {
         LineGraphSeries<DataPoint> outputSeries = new LineGraphSeries<>();
         for (HRData data : series) {
             outputSeries.appendData(new DataPoint(data.getTimeStamp(), data.getBpm()),
+                    false, Integer.MAX_VALUE, false);
+        }
+        return outputSeries;
+    }
+
+    /**
+     * Utility function: taking a list of ECGData, convert it to a LineGraphSeries for viewing
+     * @param series of ECGData for conversion
+     * @return LineGraphSeries to be attached to a graph
+     */
+    public static LineGraphSeries<DataPoint> convertECGToGraphSeries(List<ECGData> series) {
+        LineGraphSeries<DataPoint> outputSeries = new LineGraphSeries<>();
+        for (ECGData data : series) {
+            outputSeries.appendData(new DataPoint(data.getTimeStamp(), data.getVoltage()),
                     false, Integer.MAX_VALUE, false);
         }
         return outputSeries;

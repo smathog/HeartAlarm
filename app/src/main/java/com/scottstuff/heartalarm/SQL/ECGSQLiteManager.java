@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.scottstuff.heartalarm.DataTypes.ECGData;
 import com.scottstuff.heartalarm.DataTypes.HRData;
 
 import java.util.ArrayList;
@@ -18,19 +19,19 @@ import java.util.List;
  * Note that this class is structured as a singleton, so use getInstance() to get a reference to
  * it.
  */
-public class HrSQLiteManager extends SQLiteOpenHelper {
-    private static HrSQLiteManager instance;
+public class ECGSQLiteManager extends SQLiteOpenHelper {
+    private static ECGSQLiteManager instance;
 
-    private static final String DATABASE_NAME = "HrDB";
+    private static final String DATABASE_NAME = "ecgDB";
     private static final int DATABASE_VERSION = 1;
 
-    private HrSQLiteManager(Context context) {
+    private ECGSQLiteManager(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
-    public static HrSQLiteManager getInstance(Context context) {
+    public static ECGSQLiteManager getInstance(Context context) {
         if (instance == null) {
-            instance = new HrSQLiteManager(context);
+            instance = new ECGSQLiteManager(context);
         }
         return instance;
     }
@@ -40,7 +41,7 @@ public class HrSQLiteManager extends SQLiteOpenHelper {
                 .rawQuery("SELECT name " +
                         "FROM sqlite_master " +
                         "WHERE type='table' " +
-                        "AND name LIKE 'HR%'", null)) {
+                        "AND name LIKE 'ECG%'", null)) {
             ArrayList<String> list = new ArrayList<>();
             if (cursor.moveToFirst()) {
                 while (!cursor.isAfterLast()) {
@@ -54,16 +55,16 @@ public class HrSQLiteManager extends SQLiteOpenHelper {
         }
     }
 
-    public List<HRData> getData(String tableName) {
+    public List<ECGData> getData(String tableName) {
         String query = String.format("SELECT * FROM %s", tableName);
         try (Cursor cursor = instance.getReadableDatabase()
                 .rawQuery(query, null)) {
-            ArrayList<HRData> list = new ArrayList<>();
+            ArrayList<ECGData> list = new ArrayList<>();
             if (cursor.moveToFirst()) {
                 while (!cursor.isAfterLast()) {
-                    long timestamp = cursor.getLong(cursor.getColumnIndex(HrSQLiteRecorder.getTimeField()));
-                    int dataValue = cursor.getInt(cursor.getColumnIndex(HrSQLiteRecorder.getHrField()));
-                    list.add(new HRData(timestamp, dataValue));
+                    long timestamp = cursor.getLong(cursor.getColumnIndex(ECGSQLiteRecorder.getTimeField()));
+                    int dataValue = cursor.getInt(cursor.getColumnIndex(ECGSQLiteRecorder.getUnitField()));
+                    list.add(new ECGData(timestamp, dataValue));
                     cursor.moveToNext();
                 }
             }

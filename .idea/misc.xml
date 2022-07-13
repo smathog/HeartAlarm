@@ -4,6 +4,7 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="app/src/main/res/layout/activity_alarm_settings.xml" value="0.17300724637681159" />
+        <entry key="app/src/main/res/layout/activity_ecggraph_view.xml" value="0.1490036231884058" />
         <entry key="app/src/main/res/layout/activity_hrgraph_viewer.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.14356884057971014" />
         <entry key="app/src/main/res/layout/activity_set_i_d.xml" value="0.14356884057971014" />

@@ -31,6 +31,7 @@ import com.scottstuff.heartalarm.DataSource.StandardPolarDataSource;
 import com.scottstuff.heartalarm.DataTypes.ECGData;
 import com.scottstuff.heartalarm.DataTypes.HRData;
 import com.scottstuff.heartalarm.R;
+import com.scottstuff.heartalarm.SQL.ECGSQLiteRecorder;
 import com.scottstuff.heartalarm.SQL.HrSQLiteRecorder;
 
 
@@ -76,6 +77,9 @@ public class MonitorService extends Service {
 
     // HR recorder
     private HrSQLiteRecorder hrRecorder;
+
+    // ECG recorder
+    private ECGSQLiteRecorder ecgRecorder;
 
     // Android boilerplate management
     @Override
@@ -316,6 +320,11 @@ public class MonitorService extends Service {
         if (display != null) {
             display.updateECGSeries(ecgData);
         }
+
+        // If currently recording, pass the datapoint to the recorder!
+        if (ecgRecorder != null) {
+            ecgRecorder.insertRecording(ecgData);
+        }
     }
 
     /**
@@ -352,6 +361,43 @@ public class MonitorService extends Service {
         Log.d(TAG, "stopRecordingHR");
         hrRecorder.shutDown();
         hrRecorder = null;
+    }
+
+    // ECG Recording Management
+
+    /**
+     * Order the MonitorService to start recording ECG data
+     */
+    public void startRecordingECG() {
+        Log.d(TAG, "startRecordingECG");
+        if (ecgRecorder == null) {
+            ecgRecorder = new ECGSQLiteRecorder(this, System.currentTimeMillis(), 1000);
+        } else {
+            // Already recording!
+            Toast.makeText(this,
+                            "The service is already recording ECG!",
+                            Toast.LENGTH_LONG)
+                    .show();
+        }
+    }
+
+    /**
+     * Close down the ecgRecorder and stop recording.
+     */
+    public void stopRecordingECG() {
+        Log.d(TAG, "stopRecordingECG");
+        ecgRecorder.shutDown();
+        ecgRecorder = null;
+    }
+
+    /**
+     * Helper function to indicate whether or not this MonitorService is currently recording
+     * ECG readings.
+     * @return whether the service is actively recording
+     */
+    public boolean isRecordingECG() {
+        Log.d(TAG, "isRecordingECG()");
+        return ecgRecorder != null;
     }
 
     /**

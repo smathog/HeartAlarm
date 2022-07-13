@@ -133,10 +133,24 @@ public class HeartAlarm
         unbind();
     }
 
+    /**
+     * Launches the large HR Viewer activity
+     * @param view
+     */
     public void onClickHRGraph(View view) {
         Log.d(TAG, "onClickHRGraph");
         Intent hrGraphIntent = new Intent(this, HRGraphViewer.class);
         startActivity(hrGraphIntent);
+    }
+
+    /**
+     * Launches the large ECG Viewer activity
+     * @param view
+     */
+    public void onClickECGGraph(View view) {
+        Log.d(TAG, "onClickECGGraph");
+        Intent ecgGraphIntent = new Intent(this, ECGGraphView.class);
+        startActivity(ecgGraphIntent);
     }
 
     /**

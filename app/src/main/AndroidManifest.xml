@@ -15,11 +15,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".Activities.ECGGraphView"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".Activities.HRGraphViewer"
+            android:exported="false"
             android:screenOrientation="landscape"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:exported="false" />
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <service
             android:name=".Service.MonitorService"

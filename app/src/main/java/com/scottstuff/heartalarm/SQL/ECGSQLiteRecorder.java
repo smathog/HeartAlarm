@@ -1,0 +1,143 @@
+package com.scottstuff.heartalarm.SQL;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
+
+import com.scottstuff.heartalarm.DataTypes.ECGData;
+import com.scottstuff.heartalarm.DataTypes.HRData;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+
+/**
+ * Class to manage the creation of a new table in SQLite to save a HR recording
+ */
+public class ECGSQLiteRecorder {
+    private final String TABLE_NAME;
+    private static final String TIME_FIELD = "Timestamp";
+    private static final String UNIT_FIELD = "uv";
+
+    // Size at which queue data should be inserted into table
+    private final int insertThreshold;
+
+    // Reference to writeable database
+    private final SQLiteDatabase db;
+
+    // Concurrent blocking queue to handle incoming and outgoing data
+    private final LinkedBlockingQueue<ECGData> queue;
+    // Single-threaded executor for handling inserts into table
+    private final ExecutorService executorService;
+    // Future for checking if insertion is done
+    private Future<?> insertion;
+
+
+    /**
+     * Create a new ECGSQLiteRecorder, which will create and manage it's own table
+     * @param context
+     * @param firstTimestamp - Date the recorder will start, set as part of tablename
+     * @param insertThreshold - How many elements should be in queue before save transaction
+     *                        executes
+     */
+    public ECGSQLiteRecorder(Context context, Long firstTimestamp, int insertThreshold) {
+        Date date = new Date(firstTimestamp);
+        DateFormat format = new SimpleDateFormat("yyyy_MM_dd_HH_mm_ss");
+        format.setTimeZone(TimeZone.getTimeZone("UTC"));
+        this.TABLE_NAME = "ECG" + format.format(date);
+
+        ECGSQLiteManager manager = ECGSQLiteManager.getInstance(context);
+        this.db = manager.getWritableDatabase();
+        StringBuilder sql = new StringBuilder()
+                .append("CREATE TABLE IF NOT EXISTS ")
+                .append(TABLE_NAME)
+                .append("(")
+                .append(TIME_FIELD)
+                .append(" INTEGER PRIMARY KEY, ")
+                .append(UNIT_FIELD)
+                .append(" INT)");
+        db.execSQL(sql.toString());
+
+        this.insertThreshold = insertThreshold;
+        queue = new LinkedBlockingQueue<>();
+        executorService = Executors.newSingleThreadExecutor();
+    }
+
+    /**
+     * Store the passed data; insert along with previously stored data in queue if past threshold
+     * @param dataPoint to be inserted (eventually) into table
+     */
+    public void insertRecording(ECGData dataPoint) {
+        queue.add(dataPoint);
+        if ((insertion == null || insertion.isDone()) && queue.size() >= insertThreshold) {
+            insertion = executorService.submit(insertIntoTable(false));
+        }
+    }
+
+    /**
+     * Runnable task to handle inserting stored data into this recorder's table
+     * @param toEnd - if true, insert not to threshold but rather to end. Closes the db if true.
+     */
+    private Runnable insertIntoTable(boolean toEnd) {
+        return () -> {
+            db.beginTransaction();
+            try {
+                for (int i = 0; i < (toEnd ? queue.size() : insertThreshold); ++i) {
+                    ECGData data = queue.take();
+                    ContentValues cv = new ContentValues();
+                    cv.put(TIME_FIELD, data.getTimeStamp());
+                    cv.put(UNIT_FIELD, data.getVoltage());
+                    db.insert(TABLE_NAME, null, cv);
+                }
+                db.setTransactionSuccessful();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                db.endTransaction();
+                if (toEnd) {
+                    db.close();
+                }
+            }
+        };
+    }
+
+    /**
+     * Helper function to forcefully insert all remaining elements in queue, expecting the db
+     * to close down.
+     */
+    private void insertImmediately() {
+        if (insertion == null || insertion.isDone()) {
+            insertion = executorService.submit(insertIntoTable(true));
+        }
+    }
+
+    /**
+     * Terminate database connection
+     */
+    public void shutDown() {
+        insertImmediately();
+    }
+
+    /**
+     * Utility getter function
+     * @return the name of the time field column in the table
+     */
+    public static String getTimeField() {
+        return TIME_FIELD;
+    }
+
+    /**
+     * Utility getter function
+     * @return the name of the value field column in the table
+     */
+    public static String getUnitField() {
+        return UNIT_FIELD;
+    }
+
+}
