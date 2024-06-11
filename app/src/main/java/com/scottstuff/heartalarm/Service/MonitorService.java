@@ -299,6 +299,9 @@ public class MonitorService extends Service {
      */
     public void receiveHRUpdate(HRData hrData) {
         Log.d(TAG, "receiveHRUpdate()");
+        // Pass along to AlarmManager
+        am.sendUpdate(hrData.getBpm());
+
         // Only update display if one present (e.g. activity with graph active)
         if (display != null) {
             display.updateHeartRateSeries(hrData);
@@ -470,10 +473,10 @@ public class MonitorService extends Service {
     private void updateNotificationTitle(String newTitle) {
         Log.w(TAG, "updateNotificationTitle()");
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            builder.setContentText(newTitle);
+            builder.setContentTitle(newTitle);
             notificationManager.notify(NOTIFICATION_ID, builder.build());
         } else {
-            compatBuilder.setContentText(newTitle);
+            compatBuilder.setContentTitle(newTitle);
             notificationManager.notify(NOTIFICATION_ID, compatBuilder.build());
         }
     }
