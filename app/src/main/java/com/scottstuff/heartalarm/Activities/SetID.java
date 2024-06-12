@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.scottstuff.heartalarm.App.App;
+import com.scottstuff.heartalarm.App.State;
 import com.scottstuff.heartalarm.R;
 
 public class SetID extends AppCompatActivity {
@@ -28,8 +29,9 @@ public class SetID extends AppCompatActivity {
         setContentView(R.layout.activity_set_i_d);
         app = (App) this.getApplication();
         displayIDTextView = findViewById(R.id.polarIDSetting);
-        if (app.state.isDeviceIDDefined()) {
-            displayIDTextView.setText(app.state.getPolarDeviceID());
+        State state = State.getInstance();
+        if (state.isDeviceIDDefined()) {
+            displayIDTextView.setText(state.getPolarDeviceID());
         } else {
             displayIDTextView.setText("No ID Defined.");
         }
@@ -47,7 +49,8 @@ public class SetID extends AppCompatActivity {
     public void onClickSetIDConnect(View view) {
         Log.d(TAG, "onClickSetIDConnect()");
         //Set ID
-        app.state.setPolarDeviceID(editText.getText().toString());
-        displayIDTextView.setText(app.state.getPolarDeviceID());
+        State state = State.getInstance();
+        state.setPolarDeviceID(editText.getText().toString());
+        displayIDTextView.setText(state.getPolarDeviceID());
     }
 }

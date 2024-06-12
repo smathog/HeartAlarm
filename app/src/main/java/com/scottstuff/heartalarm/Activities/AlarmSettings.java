@@ -1,5 +1,6 @@
 package com.scottstuff.heartalarm.Activities;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
@@ -13,7 +14,10 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
+import com.scottstuff.heartalarm.Alarm.InvalidAlarmSettingException;
 import com.scottstuff.heartalarm.App.App;
+import com.scottstuff.heartalarm.App.SharedPreferencesManager;
+import com.scottstuff.heartalarm.App.State;
 import com.scottstuff.heartalarm.Service.MonitorService;
 import com.scottstuff.heartalarm.R;
 import com.scottstuff.heartalarm.Utility.Utility;
@@ -54,7 +58,7 @@ public class AlarmSettings extends AppCompatActivity {
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                 }
-                app.state.setHhrSetting(Integer.parseInt(editTextHHR.getText().toString()));
+                State.getInstance().setHhrSetting(Integer.parseInt(editTextHHR.getText().toString()));
             }
         });
         editTextLHR = findViewById(R.id.lhr_alarm_setting);
@@ -65,7 +69,7 @@ public class AlarmSettings extends AppCompatActivity {
                     InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                     imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                 }
-                app.state.setLhrSetting(Integer.parseInt(editTextLHR.getText().toString()));
+                State.getInstance().setLhrSetting(Integer.parseInt(editTextLHR.getText().toString()));
             }
         });
         buttonEnableHHR = findViewById(R.id.enable_hhr);
@@ -81,7 +85,7 @@ public class AlarmSettings extends AppCompatActivity {
     private void loadSharedPreferenceData() {
         Log.d(TAG, "loadSharedPreferenceData()");
         //HHR Buttons
-        if (app.state.isHhrEnabled()) {
+        if (State.getInstance().isHhrEnabled()) {
             ((RadioButton) buttonEnableHHR).setChecked(true);
             ((RadioButton) buttonDisableHHR).setChecked(false);
         } else {
@@ -89,9 +93,9 @@ public class AlarmSettings extends AppCompatActivity {
             ((RadioButton) buttonDisableHHR).setChecked(true);
         }
         //HHR Setting
-        editTextHHR.setText(Integer.toString(app.state.getHhrSetting()));
+        editTextHHR.setText(Integer.toString(State.getInstance().getHhrSetting()));
         //LHR Buttons
-        if (app.state.isLhrEnabled()) {
+        if (State.getInstance().isLhrEnabled()) {
             ((RadioButton) buttonEnableLHR).setChecked(true);
             ((RadioButton) buttonDisableLHR).setChecked(false);
         } else {
@@ -99,9 +103,9 @@ public class AlarmSettings extends AppCompatActivity {
             ((RadioButton) buttonDisableLHR).setChecked(true);
         }
         //LHR Setting
-        editTextLHR.setText(Integer.toString(app.state.getLhrSetting()));
+        editTextLHR.setText(Integer.toString(State.getInstance().getLhrSetting()));
         //Alarm Sound Setting
-        switch (app.state.getAlarmSoundSetting()) {
+        switch (State.getInstance().getAlarmSoundSetting()) {
             case IMMEDIATE_STOP:
                 ((RadioButton) buttonAlarmSoundImmediateStop).setChecked(true);
                 ((RadioButton) buttonAlarmSoundTimedStop).setChecked(false);
@@ -124,35 +128,35 @@ public class AlarmSettings extends AppCompatActivity {
 
     public void onClickActivateAlarm(View view) {
         Log.d(TAG, "onClickActivateAlarm()");
-        if (((App) this.getApplication()).state.isDeviceIDDefined()) {
+        State state = State.getInstance();
+        if (state.isDeviceIDDefined()) {
             Utility.checkBluetooth(this);
-            if (!((App) this.getApplication()).state.isHhrEnabled() && !((App) this.getApplication()).state.isLhrEnabled()) {
+            if (!state.isHhrEnabled() && !state.isLhrEnabled()) {
                 Toast.makeText(this, "Error: neither upper nor lower heart rate alarms set to on!", Toast.LENGTH_LONG).show();
                 return;
             }
-            Intent serviceUpdateIntent = new Intent(this, MonitorService.class);
-            serviceUpdateIntent.putExtra(App.HHR_ENABLED, ((App) this.getApplication()).state.isHhrEnabled());
-            serviceUpdateIntent.putExtra(App.HHR_SETTING, ((App) this.getApplication()).state.getHhrSetting());
-            serviceUpdateIntent.putExtra(App.LHR_ENABLED, ((App) this.getApplication()).state.isLhrEnabled());
-            serviceUpdateIntent.putExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
-            serviceUpdateIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
-            serviceUpdateIntent.putExtra(App.ALARM_ON, true);
+            Intent serviceUpdateIntent = createAlarmIntent(state, true);
             startService(serviceUpdateIntent);
         } else {
             Toast.makeText(this, "Error: no device ID to connect with!", Toast.LENGTH_LONG).show();
         }
     }
 
+    @NonNull
+    private Intent createAlarmIntent(State state, boolean alarmOn) {
+        Intent serviceUpdateIntent = new Intent(this, MonitorService.class);
+        serviceUpdateIntent.putExtra(SharedPreferencesManager.HHR_ENABLED, state.isHhrEnabled());
+        serviceUpdateIntent.putExtra(SharedPreferencesManager.HHR_SETTING, state.getHhrSetting());
+        serviceUpdateIntent.putExtra(SharedPreferencesManager.LHR_ENABLED, state.isLhrEnabled());
+        serviceUpdateIntent.putExtra(SharedPreferencesManager.LHR_SETTING, state.getLhrSetting());
+        serviceUpdateIntent.putExtra(SharedPreferencesManager.ALARM_SOUND_SETTING, state.getAlarmSoundSetting());
+        serviceUpdateIntent.putExtra(SharedPreferencesManager.ALARM_ON, alarmOn);
+        return serviceUpdateIntent;
+    }
+
     public void onClickDeactivateAlarm(View view) {
         Log.d(TAG, "onClickDeactivateAlarm()");
-        Intent serviceUpdateIntent = new Intent(this, MonitorService.class);
-        serviceUpdateIntent.putExtra(App.HHR_ENABLED, ((App) this.getApplication()).state.isHhrEnabled());
-        serviceUpdateIntent.putExtra(App.HHR_SETTING, ((App) this.getApplication()).state.getHhrSetting());
-        serviceUpdateIntent.putExtra(App.LHR_ENABLED, ((App) this.getApplication()).state.isLhrEnabled());
-        serviceUpdateIntent.putExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
-        serviceUpdateIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
-        serviceUpdateIntent.putExtra(App.ALARM_ON, false);
-        startService(serviceUpdateIntent);
+        startService(createAlarmIntent(State.getInstance(), false));
     }
 
     public void onClickHHR(View view) {
@@ -161,13 +165,13 @@ public class AlarmSettings extends AppCompatActivity {
         switch (view.getId()) {
             case R.id.enable_hhr:
                 if (checked) {
-                    app.state.setHhrEnabled(true);
+                    State.getInstance().setHhrEnabled(true);
                     Toast.makeText(this, "High Heart Rate Alarm Enabled!", Toast.LENGTH_LONG).show();
                 }
                 break;
             case R.id.disable_hhr:
                 if (checked) {
-                    app.state.setHhrEnabled(false);
+                    State.getInstance().setHhrEnabled(false);
                     Toast.makeText(this, "High Heart Rate Alarm Disabled!", Toast.LENGTH_LONG).show();
                 }
             default:
@@ -181,13 +185,13 @@ public class AlarmSettings extends AppCompatActivity {
         switch (view.getId()) {
             case R.id.enable_lhr:
                 if (checked) {
-                    app.state.setLhrEnabled(true);
+                    State.getInstance().setLhrEnabled(true);
                     Toast.makeText(this, "Low Heart Rate Alarm Enabled!", Toast.LENGTH_LONG).show();
                 }
                 break;
             case R.id.disable_lhr:
                 if (checked) {
-                    app.state.setLhrEnabled(false);
+                    State.getInstance().setLhrEnabled(false);
                     Toast.makeText(this, "Low Heart Rate Alarm Disabled!", Toast.LENGTH_LONG).show();
                 }
             default:
@@ -202,9 +206,9 @@ public class AlarmSettings extends AppCompatActivity {
             case R.id.duration_halt_immediate_button:
                 if (checked) {
                     try {
-                        app.state.setAlarmSoundSetting(IMMEDIATE_STOP);
+                        State.getInstance().setAlarmSoundSetting(IMMEDIATE_STOP);
                         Toast.makeText(this, "Setting Alarm Sound to Immediate Stop.", Toast.LENGTH_LONG).show();
-                    } catch (App.State.InvalidAlarmSettingException e) {
+                    } catch (InvalidAlarmSettingException e) {
                         Toast.makeText(this, "Invalid Argument Passed!", Toast.LENGTH_LONG).show();
                     }
                 }
@@ -212,9 +216,9 @@ public class AlarmSettings extends AppCompatActivity {
             case R.id.fixed_duration_halt_button:
                 if (checked) {
                     try {
-                        app.state.setAlarmSoundSetting(TIMED_STOP);
+                        State.getInstance().setAlarmSoundSetting(TIMED_STOP);
                         Toast.makeText(this, "Setting Alarm Sound to Timed Stop.", Toast.LENGTH_LONG).show();
-                    } catch (App.State.InvalidAlarmSettingException e) {
+                    } catch (InvalidAlarmSettingException e) {
                         Toast.makeText(this, "Invalid Argument Passed!", Toast.LENGTH_LONG).show();
                     }
                 }
@@ -222,9 +226,9 @@ public class AlarmSettings extends AppCompatActivity {
             case R.id.indefinite_duration_halt_button:
                 if (checked) {
                     try {
-                        app.state.setAlarmSoundSetting(NONSTOP);
+                        State.getInstance().setAlarmSoundSetting(NONSTOP);
                         Toast.makeText(this, "Setting Alarm Sound to Nonstop.", Toast.LENGTH_LONG).show();
-                    } catch (App.State.InvalidAlarmSettingException e) {
+                    } catch (InvalidAlarmSettingException e) {
                         Toast.makeText(this, "Invalid Argument Passed!", Toast.LENGTH_LONG).show();
                     }
                 }
