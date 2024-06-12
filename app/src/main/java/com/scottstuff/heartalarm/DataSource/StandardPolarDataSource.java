@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import com.jjoe64.graphview.series.DataPoint;
 import com.scottstuff.heartalarm.App.App;
+import com.scottstuff.heartalarm.App.State;
 import com.scottstuff.heartalarm.DataTypes.ECGData;
 import com.scottstuff.heartalarm.DataTypes.HRData;
 import com.scottstuff.heartalarm.Service.MonitorService;
@@ -63,6 +64,7 @@ public class StandardPolarDataSource
         ecgDataConsumer = this.service::receiveECGUpdate;
         hrDataConsumer = this.service::receiveHRUpdate;
 
+        State state = State.getInstance();
 
         //Polar API Stuff
         api = PolarBleApiDefaultImpl.defaultImplementation(service.getApplicationContext(),
@@ -77,7 +79,7 @@ public class StandardPolarDataSource
             public void deviceConnected(PolarDeviceInfo polarDeviceInfo) {
                 Log.d(TAG,"CONNECTED: " + polarDeviceInfo.deviceId);
                 String text = "Connected to Device "
-                        + ((App) service.getApplication()).state.getPolarDeviceID();
+                        + state.getPolarDeviceID();
                 service.update(text, null);
             }
 
@@ -85,7 +87,7 @@ public class StandardPolarDataSource
             public void deviceConnecting(PolarDeviceInfo polarDeviceInfo) {
                 Log.d(TAG,"CONNECTING: " + polarDeviceInfo.deviceId);
                 String text ="Connecting to Device "
-                        + ((App) service.getApplication()).state.getPolarDeviceID();
+                        + state.getPolarDeviceID();
                 service.update(text, null);
             }
 
@@ -93,10 +95,10 @@ public class StandardPolarDataSource
             public void deviceDisconnected(PolarDeviceInfo polarDeviceInfo) {
                 Log.d(TAG,"DISCONNECTED: " + polarDeviceInfo.deviceId);
                 String text = "Disconnected from Device "
-                        + ((App) service.getApplication()).state.getPolarDeviceID();
+                        + state.getPolarDeviceID();
                 service.update(text, null);
                 try {
-                    api.connectToDevice(((App) service.getApplication()).state.getPolarDeviceID());
+                    api.connectToDevice(state.getPolarDeviceID());
                 } catch (PolarInvalidArgument pia) {
                     Log.w(TAG, "Error: Device Connection Failed. Message: " + pia.getMessage());
                 }
@@ -106,12 +108,12 @@ public class StandardPolarDataSource
             public void ecgFeatureReady(String identifier) {
                 Log.d(TAG,"ECG READY: " + identifier);
                 // ecg streaming setup
-                api.requestEcgSettings(((App) service.getApplication()).state.getPolarDeviceID())
+                api.requestEcgSettings(state.getPolarDeviceID())
                         .toFlowable()
                         .flatMap((Function<PolarSensorSetting, Publisher<PolarEcgData>>) polarEcgSettings -> {
                             PolarSensorSetting sensorSetting = polarEcgSettings.maxSettings();
-                            return api.startEcgStreaming((
-                                            ((App) service.getApplication()).state.getPolarDeviceID()),
+                            return api.startEcgStreaming(
+                                            (state.getPolarDeviceID()),
                                     sensorSetting);
                         }).subscribe(
                         polarEcgData -> {
@@ -175,7 +177,7 @@ public class StandardPolarDataSource
                 Log.d(TAG,"HR READY: " + identifier);
                 // hr notifications are about to start
                 String text = "HR Notifications Ready From Device "
-                        + ((App) service.getApplication()).state.getPolarDeviceID();
+                        + state.getPolarDeviceID();
                 service.update(text, null);
             }
 
@@ -189,7 +191,7 @@ public class StandardPolarDataSource
             public void batteryLevelReceived(String identifier, int level) {
                 Log.d(TAG,"BATTERY LEVEL: " + level);
                 String text = "Device "
-                        + ((App) service.getApplication()).state.getPolarDeviceID()
+                        + state.getPolarDeviceID()
                         + " Battery Level: " + level;
                 service.update(text, null);
 
@@ -209,7 +211,7 @@ public class StandardPolarDataSource
             }
         });
         try {
-            api.connectToDevice(((App) service.getApplication()).state.getPolarDeviceID());
+            api.connectToDevice(state.getPolarDeviceID());
         } catch (PolarInvalidArgument pia) {
             Log.w(TAG, "Error: Device Connection Failed. Message: " + pia.getMessage());
         }

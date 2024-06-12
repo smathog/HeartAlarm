@@ -6,6 +6,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 // Imports for Polar API Stuff
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 // Graph imports
@@ -24,6 +26,8 @@ import com.scottstuff.heartalarm.Activities.AlarmSettings;
 import com.scottstuff.heartalarm.Activities.HeartAlarm;
 import com.scottstuff.heartalarm.Alarm.AlarmManager;
 import com.scottstuff.heartalarm.App.App;
+import com.scottstuff.heartalarm.App.SharedPreferencesManager;
+import com.scottstuff.heartalarm.App.State;
 import com.scottstuff.heartalarm.DataDisplay.DataDisplay;
 import com.scottstuff.heartalarm.DataSource.ECGDataSource;
 import com.scottstuff.heartalarm.DataSource.HRDataSource;
@@ -87,6 +91,8 @@ public class MonitorService extends Service {
         super.onCreate();
         Log.w(TAG, "onCreate()");
 
+        State state = State.getInstance();
+
         // Set Datasources
         //TODO: make this actually a selection
         StandardPolarDataSource temp = new StandardPolarDataSource(this);
@@ -113,7 +119,7 @@ public class MonitorService extends Service {
 
 
         //Setup AlarmManager
-        int mode = ((App) this.getApplication()).state.getAlarmSoundSetting();
+        int mode = state.getAlarmSoundSetting();
         AlarmManager.AlarmMode aMode;
         switch (mode) {
             case AlarmSettings.IMMEDIATE_STOP:
@@ -128,10 +134,8 @@ public class MonitorService extends Service {
                 break;
         }
         //Start with alarms off; must be updated through onStartCommand() intent.
-        am = new AlarmManager(this,
-                ((App) this.getApplication()).state.getLhrSetting(),
-                false,
-                ((App) this.getApplication()).state.getHhrSetting(),
+        am = new AlarmManager(this, state.getLhrSetting(),
+                false, state.getHhrSetting(),
                 false,
                 aMode,
                 false);
@@ -257,12 +261,13 @@ public class MonitorService extends Service {
      */
     public void updateFromIntent(Intent intent) {
         Log.d(TAG, "updateFromIntent()");
-        boolean lhrOn = intent.getBooleanExtra(App.LHR_ENABLED, false);
-        boolean hhrOn = intent.getBooleanExtra(App.HHR_ENABLED, false);
-        boolean alarmActive = intent.getBooleanExtra(App.ALARM_ON, false);
-        int alarmSoundSetting = intent.getIntExtra(App.ALARM_SOUND_SETTING, AlarmSettings.NONSTOP);
-        int hhrSetting = intent.getIntExtra(App.HHR_SETTING, ((App) this.getApplication()).state.getHhrSetting());
-        int lhrSetting = intent.getIntExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
+        State state = State.getInstance();
+        boolean lhrOn = intent.getBooleanExtra(SharedPreferencesManager.LHR_ENABLED, false);
+        boolean hhrOn = intent.getBooleanExtra(SharedPreferencesManager.HHR_ENABLED, false);
+        boolean alarmActive = intent.getBooleanExtra(SharedPreferencesManager.ALARM_ON, false);
+        int alarmSoundSetting = intent.getIntExtra(SharedPreferencesManager.ALARM_SOUND_SETTING, AlarmSettings.NONSTOP);
+        int hhrSetting = intent.getIntExtra(SharedPreferencesManager.HHR_SETTING, state.getHhrSetting());
+        int lhrSetting = intent.getIntExtra(SharedPreferencesManager.LHR_SETTING, state.getLhrSetting());
         am.setAlarmActive(alarmActive);
         am.updateLowerLimit(lhrSetting);
         am.updateUpperLimit(hhrSetting);
@@ -291,6 +296,25 @@ public class MonitorService extends Service {
             final String defaultTitle = "HeartAlarm Monitor (Polar H10)";
             updateWithTitle(defaultTitle, null);
         }
+    }
+
+    /**
+     * Create an intent to update MonitorService
+     * @param context originating the intent
+     * @param alarmOn
+     * @return intent
+     */
+    @NonNull
+    public static Intent createMonitorServiceIntent(Context context, boolean alarmOn) {
+        State state = State.getInstance();
+        Intent serviceUpdateIntent = new Intent(context, MonitorService.class);
+        serviceUpdateIntent.putExtra(SharedPreferencesManager.HHR_ENABLED, state.isHhrEnabled());
+        serviceUpdateIntent.putExtra(SharedPreferencesManager.HHR_SETTING, state.getHhrSetting());
+        serviceUpdateIntent.putExtra(SharedPreferencesManager.LHR_ENABLED, state.isLhrEnabled());
+        serviceUpdateIntent.putExtra(SharedPreferencesManager.LHR_SETTING, state.getLhrSetting());
+        serviceUpdateIntent.putExtra(SharedPreferencesManager.ALARM_SOUND_SETTING, state.getAlarmSoundSetting());
+        serviceUpdateIntent.putExtra(SharedPreferencesManager.ALARM_ON, alarmOn);
+        return serviceUpdateIntent;
     }
 
     /**

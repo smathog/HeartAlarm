@@ -135,28 +135,16 @@ public class AlarmSettings extends AppCompatActivity {
                 Toast.makeText(this, "Error: neither upper nor lower heart rate alarms set to on!", Toast.LENGTH_LONG).show();
                 return;
             }
-            Intent serviceUpdateIntent = createAlarmIntent(state, true);
+            Intent serviceUpdateIntent = MonitorService.createMonitorServiceIntent(this, true);
             startService(serviceUpdateIntent);
         } else {
             Toast.makeText(this, "Error: no device ID to connect with!", Toast.LENGTH_LONG).show();
         }
     }
 
-    @NonNull
-    private Intent createAlarmIntent(State state, boolean alarmOn) {
-        Intent serviceUpdateIntent = new Intent(this, MonitorService.class);
-        serviceUpdateIntent.putExtra(SharedPreferencesManager.HHR_ENABLED, state.isHhrEnabled());
-        serviceUpdateIntent.putExtra(SharedPreferencesManager.HHR_SETTING, state.getHhrSetting());
-        serviceUpdateIntent.putExtra(SharedPreferencesManager.LHR_ENABLED, state.isLhrEnabled());
-        serviceUpdateIntent.putExtra(SharedPreferencesManager.LHR_SETTING, state.getLhrSetting());
-        serviceUpdateIntent.putExtra(SharedPreferencesManager.ALARM_SOUND_SETTING, state.getAlarmSoundSetting());
-        serviceUpdateIntent.putExtra(SharedPreferencesManager.ALARM_ON, alarmOn);
-        return serviceUpdateIntent;
-    }
-
     public void onClickDeactivateAlarm(View view) {
         Log.d(TAG, "onClickDeactivateAlarm()");
-        startService(createAlarmIntent(State.getInstance(), false));
+        startService(MonitorService.createMonitorServiceIntent(this, false));
     }
 
     public void onClickHHR(View view) {

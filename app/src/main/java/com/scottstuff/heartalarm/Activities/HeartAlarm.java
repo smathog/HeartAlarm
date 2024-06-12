@@ -20,6 +20,7 @@ import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
 import com.jjoe64.graphview.series.PointsGraphSeries;
 import com.scottstuff.heartalarm.App.App;
+import com.scottstuff.heartalarm.App.State;
 import com.scottstuff.heartalarm.Service.MonitorService;
 import com.scottstuff.heartalarm.R;
 import com.scottstuff.heartalarm.Utility.Utility;
@@ -170,16 +171,10 @@ public class HeartAlarm
      */
     public void onClickStartMonitor(View view) {
         Log.d(TAG, "onClickStartMonitor()");
-        if (((App) this.getApplication()).state.isDeviceIDDefined()) {
+        if (State.getInstance().isDeviceIDDefined()) {
             Utility.checkBluetooth(this);
             if (serviceInstance == null) {
-                Intent serviceIntent = new Intent(this, MonitorService.class);
-                serviceIntent.putExtra(App.HHR_ENABLED, ((App) this.getApplication()).state.isHhrEnabled());
-                serviceIntent.putExtra(App.HHR_SETTING, ((App) this.getApplication()).state.getHhrSetting());
-                serviceIntent.putExtra(App.LHR_ENABLED, ((App) this.getApplication()).state.isLhrEnabled());
-                serviceIntent.putExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
-                serviceIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
-                serviceIntent.putExtra(App.ALARM_ON, false);
+                Intent serviceIntent = MonitorService.createMonitorServiceIntent(this, false);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                     startForegroundService(serviceIntent);
                 else
@@ -213,19 +208,14 @@ public class HeartAlarm
      */
     public void onClickActivateAlarm(View view) {
         Log.d(TAG, "onClickActivateAlarm()");
-        if (((App) this.getApplication()).state.isDeviceIDDefined()) {
+        State state = State.getInstance();
+        if (state.isDeviceIDDefined()) {
             Utility.checkBluetooth(this);
-            if (!((App) this.getApplication()).state.isHhrEnabled() && !((App) this.getApplication()).state.isLhrEnabled()) {
+            if (!state.isHhrEnabled() && !state.isLhrEnabled()) {
                 Toast.makeText(this, "Error: neither upper nor lower heart rate alarms set to on!", Toast.LENGTH_LONG).show();
                 return;
             }
-            Intent serviceUpdateIntent = new Intent(this, MonitorService.class);
-            serviceUpdateIntent.putExtra(App.HHR_ENABLED, ((App) this.getApplication()).state.isHhrEnabled());
-            serviceUpdateIntent.putExtra(App.HHR_SETTING, ((App) this.getApplication()).state.getHhrSetting());
-            serviceUpdateIntent.putExtra(App.LHR_ENABLED, ((App) this.getApplication()).state.isLhrEnabled());
-            serviceUpdateIntent.putExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
-            serviceUpdateIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
-            serviceUpdateIntent.putExtra(App.ALARM_ON, true);
+            Intent serviceUpdateIntent = MonitorService.createMonitorServiceIntent(this, true);
             if (serviceInstance != null) {
                 serviceInstance.updateFromIntent(serviceUpdateIntent);
                 Toast.makeText(this, "Service already running!", Toast.LENGTH_LONG).show();
@@ -245,13 +235,7 @@ public class HeartAlarm
     public void onClickDeactivateAlarm(View view) {
         Log.d(TAG, "onClickDeactivateAlarm()");
         if (serviceInstance != null) {
-            Intent serviceUpdateIntent = new Intent(this, MonitorService.class);
-            serviceUpdateIntent.putExtra(App.HHR_ENABLED, ((App) this.getApplication()).state.isHhrEnabled());
-            serviceUpdateIntent.putExtra(App.HHR_SETTING, ((App) this.getApplication()).state.getHhrSetting());
-            serviceUpdateIntent.putExtra(App.LHR_ENABLED, ((App) this.getApplication()).state.isLhrEnabled());
-            serviceUpdateIntent.putExtra(App.LHR_SETTING, ((App) this.getApplication()).state.getLhrSetting());
-            serviceUpdateIntent.putExtra(App.ALARM_SOUND_SETTING, ((App) this.getApplication()).state.getAlarmSoundSetting());
-            serviceUpdateIntent.putExtra(App.ALARM_ON, false);
+            Intent serviceUpdateIntent = MonitorService.createMonitorServiceIntent(this, false);
             serviceInstance.updateFromIntent(serviceUpdateIntent);
         }
     }
